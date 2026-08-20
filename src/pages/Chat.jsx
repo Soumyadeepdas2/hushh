@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Logo from '../components/Logo'
+import Avatar from '../components/Avatar'
+import SettingsMenu from '../components/SettingsMenu'
 import SearchBox from '../components/SearchBox'
 import ConversationList from '../components/ConversationList'
 import MessageBubble from '../components/MessageBubble'
@@ -14,9 +16,12 @@ import {
   listConversations,
   listConversationParticipants,
   listLastMessages,
+  getUnreadCounts,
+  markConversationRead,
+  deleteConversationForMe,
 } from '../services/conversations'
 import { deleteMessage, fetchMessages, sendMessage } from '../services/messages'
-import { getProfileBrief } from '../services/profiles'
+import { getProfileBrief, setAvatar } from '../services/profiles'
 import { Button } from '../components/ui'
 
 // ---------------------------------------------------------------------------
@@ -28,6 +33,12 @@ import { Button } from '../components/ui'
 // Realtime: messages arrive via Supabase Realtime (postgres_changes), which
 // is RLS-enforced — a client only receives events for conversations it can
 // SELECT. No polling.
+//
+// Features (A/B/C/D):
+//   A — unread message count per conversation (read cursor server-side)
+//   B — delete a chat "for me" (via the delete_conversation_for_me RPC)
+//   C — settings menu (avatar picker + log out) replaces the Log out button
+//   D — fixed avatar gallery (profiles.avatar_id)
 // ---------------------------------------------------------------------------
 
 const SORT = (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
@@ -40,16 +51,6 @@ function upsertMessage(list, incoming) {
   const next = [...list]
   next[index] = incoming
   return next.sort(SORT)
-}
-
-function initials(name) {
-  if (!name) return '?'
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase() || '')
-    .join('')
 }
 
 export default function Chat() {
@@ -65,6 +66,12 @@ export default function Chat() {
   const [toast, setToast] = useState(null)
   const messagesEndRef = useRef(null)
   const messagesContainerRef = useRef(null)
+  // latest activeId available inside the realtime callback (ref stays in sync)
+  const activeIdRef = useRef(activeId)
+
+  useEffect(() => {
+    activeIdRef.current = activeId
+  }, [activeId])
 
   const showToast = useCallback((message) => {
     setToast(message)
@@ -72,11 +79,6 @@ export default function Chat() {
   }, [])
 
   // ---- profile race safety net ---------------------------------------------
-  // If the session exists but the profile is missing (the auth listener can
-  // fetch the profile before the registration INSERT commits), re-fetch a
-  // few times automatically so the chat screen self-heals instead of showing
-  // the "profile could not be loaded" dead end. Stops once the profile loads
-  // or after 4 attempts — never loops forever.
   useEffect(() => {
     if (!session?.user || profile) return undefined
     let attempts = 0
@@ -105,6 +107,9 @@ export default function Chat() {
       const briefs = await getProfileBrief(profileIds)
       const briefMap = new Map(briefs.map((b) => [b.id, b]))
       const lastMessages = await listLastMessages(list.map((c) => c.id))
+      const unreadRows = await getUnreadCounts()
+      const unreadMap = {}
+      for (const row of unreadRows) unreadMap[row.conversation_id] = Number(row.unread_count) || 0
 
       const enriched = list
         .map((conversation) => {
@@ -116,6 +121,7 @@ export default function Chat() {
           return {
             ...conversation,
             other,
+            unread: unreadMap[conversation.id] || 0,
             lastMessage: latest
               ? latest.deleted_at
                 ? { deleted: true, created_at: latest.created_at }
@@ -156,6 +162,12 @@ export default function Chat() {
       setMobileView('chat')
       setMessages([])
       setPeer(null)
+      // clear the unread badge + advance the read cursor (unread lives on the
+      // conversation object — the single source the badge reads from)
+      setConversations((prev) =>
+        prev.map((c) => (c.id === conversationId ? { ...c, unread: 0 } : c)),
+      )
+      markConversationRead(conversationId).catch(() => {})
       try {
         const [history, participantRows] = await Promise.all([
           fetchMessages(conversationId),
@@ -179,10 +191,11 @@ export default function Chat() {
     (payload) => {
       if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
         setMessages((prev) => upsertMessage(prev, payload.new))
+        const convId = payload.new.conversation_id
         setConversations((prev) =>
           prev
             .map((c) =>
-              c.id === payload.new.conversation_id
+              c.id === convId
                 ? {
                     ...c,
                     last_message_at: payload.new.created_at,
@@ -198,9 +211,17 @@ export default function Chat() {
               return tb - ta
             }),
         )
+        // incoming message from someone else while this chat is NOT open -> bump unread
+        if (payload.eventType === 'INSERT' && payload.new.sender_id !== profile?.id) {
+          if (convId !== activeIdRef.current) {
+            setConversations((prev) =>
+              prev.map((c) => (c.id === convId ? { ...c, unread: (c.unread || 0) + 1 } : c)),
+            )
+          }
+        }
       }
     },
-    [],
+    [profile?.id],
   )
   useRealtimeMessages(activeId, handleMessageEvent)
 
@@ -210,9 +231,7 @@ export default function Chat() {
     if (!activeId || !profile) return
     try {
       await sendMessage({ conversationId: activeId, senderId: profile.id, body })
-      // Refresh to guarantee the sender's own message is in the list even if a
-      // realtime event is momentarily missed. Realtime keeps delivering the
-      // other side live — this is not polling.
+      markConversationRead(activeId).catch(() => {})
       const history = await fetchMessages(activeId)
       setMessages(history)
     } catch (err) {
@@ -222,9 +241,10 @@ export default function Chat() {
 
   const handleDelete = async (message) => {
     if (!message || message.deleted_at || message.sender_id !== profile?.id) return
+    // eslint-disable-next-line no-alert
+    if (!window.confirm('Delete this message?')) return
     try {
       await deleteMessage(message.id)
-      // Optimistic local update; the realtime UPDATE event confirms it.
       setMessages((prev) =>
         prev.map((m) =>
           m.id === message.id ? { ...m, deleted_at: new Date().toISOString() } : m,
@@ -246,6 +266,35 @@ export default function Chat() {
       await openConversation(conversationId)
     } catch {
       showToast('Could not start that conversation.')
+    }
+  }
+
+  const handleDeleteConversation = async (conversationId) => {
+    if (!conversationId) return
+    const conversation = conversations.find((c) => c.id === conversationId)
+    const name = conversation?.other?.display_name || 'this chat'
+    // eslint-disable-next-line no-alert
+    if (!window.confirm(`Delete your conversation with ${name}? This only removes it for you.`)) return
+    try {
+      await deleteConversationForMe(conversationId)
+      setConversations((prev) => prev.filter((c) => c.id !== conversationId))
+      if (activeId === conversationId) {
+        setActiveId(null)
+        setMessages([])
+        setPeer(null)
+        setMobileView('list')
+      }
+    } catch {
+      showToast('Could not delete that conversation.')
+    }
+  }
+
+  const handleSelectAvatar = async (avatarId) => {
+    try {
+      await setAvatar(avatarId)
+      if (session?.user) await refreshProfile(session.user.id)
+    } catch {
+      showToast('Could not update your avatar.')
     }
   }
 
@@ -306,15 +355,15 @@ export default function Chat() {
           <Link to="/" className="chat-side__logo" aria-label="hushh home">
             <Logo size="sm" />
           </Link>
-          <button type="button" className="btn btn--ghost btn--small" onClick={handleLogout}>
-            Log out
-          </button>
+          <SettingsMenu
+            profile={profile}
+            onSelectAvatar={handleSelectAvatar}
+            onLogout={handleLogout}
+          />
         </div>
 
         <div className="chat-side__me">
-          <span className="avatar" aria-hidden="true">
-            {initials(profile?.display_name)}
-          </span>
+          <Avatar profile={profile} size="md" />
           <div className="chat-side__me-text">
             <span className="chat-side__me-name">{profile?.display_name}</span>
             <span className="chat-side__me-chatid">@{profile?.chat_id}</span>
@@ -360,14 +409,24 @@ export default function Chat() {
               <button type="button" className="btn btn--ghost btn--small btn--back" onClick={handleBack}>
                 ← Back
               </button>
-              <span className="avatar avatar--navy" aria-hidden="true">
-                {initials(peer?.display_name)}
-              </span>
+              <Avatar profile={peer} size="md" navy />
               <div className="chat-main__peer">
                 <span className="chat-main__peer-name">{peer?.display_name || '…'}</span>
                 <span className="chat-main__peer-chatid">@{peer?.chat_id || '…'}</span>
               </div>
               <span className="chat-main__tag">private</span>
+              <button
+                type="button"
+                className="btn btn--ghost btn--small chat-main__delete"
+                onClick={() => handleDeleteConversation(activeId)}
+                aria-label="Delete conversation"
+                title="Delete this chat"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+                  <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                  <path d="M10 11v6M14 11v6" />
+                </svg>
+              </button>
             </header>
 
             <div className="messages" ref={messagesContainerRef}>
@@ -376,6 +435,7 @@ export default function Chat() {
                   key={message.id}
                   message={message}
                   own={message.sender_id === profile?.id}
+                  onDelete={handleDelete}
                 />
               ))}
               {messages.length === 0 && (

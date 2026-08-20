@@ -29,16 +29,45 @@ export async function getOrCreateConversation(otherProfileId) {
 }
 
 /**
- * List conversations visible to the caller (RLS: participant only),
- * most recently active first.
+ * List conversations visible to the caller (RLS: participant only, via the
+ * security-definer RPC which also excludes nothing else — the caller's own
+ * participant row defines visibility). Most recently active first.
  */
 export async function listConversations() {
-  const { data, error } = await supabase
-    .from('conversations')
-    .select('id, created_at, updated_at, last_message_at')
-    .order('last_message_at', { ascending: false, nullsFirst: false })
+  const { data, error } = await supabase.rpc('list_my_conversations')
   if (error) throw new Error('Something went wrong. Please try again.')
   return data || []
+}
+
+/**
+ * Unread message counts per conversation (participant-scoped; excludes the
+ * caller's own messages and soft-deleted ones). Returns an array of
+ * { conversation_id, unread_count } for conversations with count > 0.
+ */
+export async function getUnreadCounts() {
+  const { data, error } = await supabase.rpc('get_unread_counts')
+  if (error) return []
+  return data || []
+}
+
+/** Advance the caller's read cursor for a conversation (clears its badge). */
+export async function markConversationRead(conversationId) {
+  const { error } = await supabase.rpc('mark_conversation_read', {
+    p_conversation_id: conversationId,
+  })
+  if (error) throw new Error('Something went wrong. Please try again.')
+}
+
+/**
+ * Delete a conversation FOR the caller: removes their participant row (and
+ * the whole conversation + messages when no participants remain). The other
+ * participant's copy is untouched.
+ */
+export async function deleteConversationForMe(conversationId) {
+  const { error } = await supabase.rpc('delete_conversation_for_me', {
+    p_conversation_id: conversationId,
+  })
+  if (error) throw new Error('Could not delete that conversation.')
 }
 
 /**

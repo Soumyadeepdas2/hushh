@@ -57,9 +57,20 @@ export async function searchProfiles(query) {
 }
 
 /**
+ * Set the caller's avatar from the fixed gallery (1..12). Validated
+ * server-side by the security-definer RPC.
+ */
+export async function setAvatar(avatarId) {
+  const { error } = await supabase.rpc('set_avatar', { p_avatar_id: avatarId })
+  if (error) {
+    throw new Error('Something went wrong. Please try again.')
+  }
+}
+
+/**
  * Fetch brief profile info for the participants of conversations the caller
  * belongs to. The RPC only returns rows for profiles sharing a conversation
- * with the caller.
+ * with the caller, and now includes avatar_id (public field).
  */
 export async function getProfileBrief(profileIds) {
   if (!Array.isArray(profileIds) || profileIds.length === 0) return []

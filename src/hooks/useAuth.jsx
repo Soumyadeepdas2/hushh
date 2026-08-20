@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
     // RLS allows reading only your own profile row.
     const { data } = await supabase
       .from('profiles')
-      .select('id, display_name, chat_id')
+      .select('id, display_name, chat_id, avatar_id')
       .eq('auth_user_id', userId)
       .maybeSingle()
     setProfile(data ?? null)

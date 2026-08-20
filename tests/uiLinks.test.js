@@ -103,3 +103,42 @@ describe('shared top-bar header system', () => {
     expect(chat).toContain('<span className="chat-main__tag">private</span>')
   })
 })
+
+describe('unread badge clears on open + hover bin removed (bug fixes)', () => {
+  it('Chat passes onDelete only to the message bubble, not the conversation list', () => {
+    const chat = read('src/pages/Chat.jsx')
+    // the ConversationList element has no onDelete prop (hover bin removed)
+    expect(chat).toContain(
+      '<ConversationList\n            conversations={conversations}\n            activeId={activeId}\n            onOpen={openConversation}\n          />',
+    )
+    // message bubbles get the delete handler (right-click / double-tap)
+    expect(chat).toMatch(/<MessageBubble[\s\S]*?onDelete=\{handleDelete\}/)
+  })
+
+  it('MessageBubble deletes via gestures, not a visible button', () => {
+    const source = read('src/components/MessageBubble.jsx')
+    expect(source).toContain('onContextMenu={canDelete ? handleContextMenu : undefined}')
+    expect(source).toContain('onTouchEnd={canDelete ? handleTouchEnd : undefined}')
+    expect(source).toContain('Delete message')
+    // no hover trash button anymore (msg__deleted-text is a different class —
+    // match the exact standalone delete button class, not the substring)
+    expect(source).not.toMatch(/className="msg__delete"/)
+    const css = read('src/styles/global.css')
+    expect(css).not.toMatch(/\.msg__delete(?![a-z-])/)
+    expect(css).toContain('.msg-menu')
+  })
+
+  it('ConversationList no longer accepts onDelete and renders no row delete button', () => {
+    const list = read('src/components/ConversationList.jsx')
+    expect(list).not.toContain('onDelete')
+    expect(list).not.toContain('conversation__delete')
+  })
+
+  it('unread badge reads from the conversation object and clears in openConversation', () => {
+    const chat = read('src/pages/Chat.jsx')
+    // single source of truth: badge reads conversation.unread
+    expect(chat).toContain('unread: unreadMap[conversation.id] || 0')
+    // opening a chat zeroes the badge on the conversation object
+    expect(chat).toMatch(/setConversations\([\s\S]*?c\.id === conversationId \? \{ \.\.\.c, unread: 0 \}/)
+  })
+})

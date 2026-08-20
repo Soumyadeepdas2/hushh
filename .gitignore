@@ -5,7 +5,7 @@ node_modules/
 dist/
 dist-ssr/
 
-# environment 
+# environment — never commit your real .env
 .env
 .env.local
 .env.*.local

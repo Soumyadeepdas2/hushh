@@ -1,21 +1,12 @@
 import { useEffect, useState } from 'react'
 import { searchProfiles } from '../services/profiles'
+import Avatar from './Avatar'
 
 // ---------------------------------------------------------------------------
 // Search users by Chat ID. Results only ever contain the public profile
-// fields: id (opaque), display_name, chat_id. No emails, no auth IDs, no
-// recovery information.
+// fields: id (opaque), display_name, chat_id, avatar_id. No emails, no auth
+// IDs, no recovery information.
 // ---------------------------------------------------------------------------
-
-function initials(name) {
-  if (!name) return '?'
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase() || '')
-    .join('')
-}
 
 export default function SearchBox({ myProfileId, onSelect }) {
   const [query, setQuery] = useState('')
@@ -46,6 +37,13 @@ export default function SearchBox({ myProfileId, onSelect }) {
     }
   }, [query, myProfileId])
 
+  const handleSelect = (user) => {
+    // Clear the search so the box + results vanish after choosing a user.
+    setQuery('')
+    setResults([])
+    onSelect(user)
+  }
+
   return (
     <div className="search">
       <input
@@ -65,9 +63,7 @@ export default function SearchBox({ myProfileId, onSelect }) {
           {results.map((user) => (
             <li key={user.id} className="search__result">
               <div className="search__result-info">
-                <span className="avatar avatar--sm" aria-hidden="true">
-                  {initials(user.display_name)}
-                </span>
+                <Avatar profile={user} size="sm" />
                 <div className="search__result-text">
                   <span className="search__result-name">{user.display_name}</span>
                   <span className="search__result-chatid">@{user.chat_id}</span>
@@ -76,7 +72,7 @@ export default function SearchBox({ myProfileId, onSelect }) {
               <button
                 type="button"
                 className="btn btn--small"
-                onClick={() => onSelect(user)}
+                onClick={() => handleSelect(user)}
               >
                 Message
               </button>
