@@ -222,6 +222,24 @@ button {
   background: rgba(255, 253, 245, 0.85);
 }
 
+/* destructive confirm button (delete chat / delete message) */
+.btn--danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.btn--danger:hover {
+  background: #932f22;
+  border-color: #932f22;
+  color: #fff;
+}
+
+.btn--danger:disabled {
+  background: rgba(176, 58, 43, 0.5);
+  border-color: transparent;
+}
+
 .btn--block {
   display: flex;
   width: 100%;
@@ -1350,7 +1368,12 @@ select.input {
 .chat {
   display: grid;
   grid-template-columns: 350px minmax(0, 1fr);
+  /* mobile keyboard fix: 100vh ignores the on-screen keyboard on phones.
+     100dvh + --app-height (set from window.visualViewport) track the VISIBLE
+     area, so the composer stays above the keyboard. */
   height: 100vh;
+  height: 100dvh;
+  height: var(--app-height, 100dvh);
   overflow: hidden;
 }
 
@@ -2021,6 +2044,15 @@ select.input {
   justify-content: flex-end;
   flex-wrap: wrap;
 }
+
+.confirm-dialog {
+  max-width: 400px;
+}
+
+.confirm-dialog__actions {
+  margin-top: 0.2rem;
+}
+
 
 /* ===========================================================================
    RESPONSIVE

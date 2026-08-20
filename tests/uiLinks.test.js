@@ -111,8 +111,9 @@ describe('unread badge clears on open + hover bin removed (bug fixes)', () => {
     expect(chat).toContain(
       '<ConversationList\n            conversations={conversations}\n            activeId={activeId}\n            onOpen={openConversation}\n          />',
     )
-    // message bubbles get the delete handler (right-click / double-tap)
-    expect(chat).toMatch(/<MessageBubble[\s\S]*?onDelete=\{handleDelete\}/)
+    // message bubbles get the delete handler (right-click / double-tap) which
+    // opens the in-app confirm modal
+    expect(chat).toMatch(/<MessageBubble[\s\S]*?onDelete=\{requestDeleteMessage\}/)
   })
 
   it('MessageBubble deletes via gestures, not a visible button', () => {
@@ -137,8 +138,57 @@ describe('unread badge clears on open + hover bin removed (bug fixes)', () => {
   it('unread badge reads from the conversation object and clears in openConversation', () => {
     const chat = read('src/pages/Chat.jsx')
     // single source of truth: badge reads conversation.unread
-    expect(chat).toContain('unread: unreadMap[conversation.id] || 0')
+    expect(chat).toContain('unread,')
+    // the OPEN conversation always shows 0 (you're reading it)
+    expect(chat).toContain('conversation.id === activeIdRef.current ? 0 : unreadMap[conversation.id] || 0')
     // opening a chat zeroes the badge on the conversation object
     expect(chat).toMatch(/setConversations\([\s\S]*?c\.id === conversationId \? \{ \.\.\.c, unread: 0 \}/)
+  })
+
+  it('incoming message in the OPEN chat advances the read cursor (no phantom count)', () => {
+    const chat = read('src/pages/Chat.jsx')
+    expect(chat).toContain('if (convId === activeIdRef.current) {')
+    expect(chat).toMatch(/markConversationRead\(convId\)\.catch\(\(\) => \{\}\)/)
+  })
+})
+
+describe('in-app confirmation replaces window.confirm for deletes', () => {
+  it('Chat uses ConfirmDialog state, not window.confirm', () => {
+    const chat = read('src/pages/Chat.jsx')
+    expect(chat).toContain("import ConfirmDialog from '../components/ConfirmDialog'")
+    expect(chat).not.toContain('window.confirm')
+    expect(chat).toContain('<ConfirmDialog')
+    expect(chat).toContain('requestDeleteConversation')
+    expect(chat).toContain('requestDeleteMessage')
+  })
+
+  it('SPA fallback config exists for refresh-404 (Vercel / Netlify / CF Pages)', () => {
+    expect(has('vercel.json')).toBe(true)
+    expect(has('netlify.toml')).toBe(true)
+    expect(has('public/_redirects')).toBe(true)
+    expect(read('vercel.json')).toContain('rewrites')
+    expect(read('netlify.toml')).toContain('/index.html')
+  })
+})
+
+describe('mobile keyboard — composer stays above the keyboard', () => {
+  it('viewport meta enables keyboard-driven resize', () => {
+    const html = read('index.html')
+    expect(html).toContain('interactive-widget=resizes-content')
+    expect(html).toContain('viewport-fit=cover')
+  })
+
+  it('chat height uses dynamic viewport + visualViewport override', () => {
+    const css = read('src/styles/global.css')
+    expect(css).toMatch(/\.chat \{[\s\S]*?height: 100vh;[\s\S]*?height: 100dvh;[\s\S]*?height: var\(--app-height, 100dvh\)/)
+    const chat = read('src/pages/Chat.jsx')
+    expect(chat).toContain("window.visualViewport")
+    expect(chat).toContain("'--app-height'")
+  })
+
+  it('composer nudges itself into view on focus', () => {
+    const input = read('src/components/MessageInput.jsx')
+    expect(input).toContain('onFocus={handleFocus}')
+    expect(input).toContain('scrollIntoView({ block: \'nearest\', behavior: \'smooth\' })')
   })
 })

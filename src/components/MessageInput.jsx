@@ -40,6 +40,15 @@ export default function MessageInput({ onSend, disabled }) {
     }
   }
 
+  // Mobile keyboard fix: when the field is focused, nudge the composer into
+  // the visible area (the visualViewport height fix handles sizing; this
+  // covers cases where the browser's own auto-scroll is slow).
+  const handleFocus = () => {
+    requestAnimationFrame(() => {
+      textareaRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    })
+  }
+
   const overLimit = value.length > MESSAGE_MAX_LENGTH
 
   return (
@@ -52,6 +61,7 @@ export default function MessageInput({ onSend, disabled }) {
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
         maxLength={MESSAGE_MAX_LENGTH + 200}
         disabled={disabled}
         aria-label="Message"

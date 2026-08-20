@@ -1,0 +1,5 @@
+# SPA fallback: serve index.html for all routes 
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
