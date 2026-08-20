@@ -93,4 +93,25 @@ describe('ConfirmDialog', () => {
     expect(buttons[0].disabled).toBe(true)
     expect(buttons[1].disabled).toBe(true)
   })
+
+  it('ignores an outside-click right after opening (no flash-close on touch)', async () => {
+    const onCancel = vi.fn()
+    await act(async () => {
+      root.render(<ConfirmDialog open title={base.title} message={base.message} onConfirm={vi.fn()} onCancel={onCancel} />)
+    })
+    const backdrop = document.querySelector('.dialog-backdrop')
+    // the synthesized mousedown that fires right after the touch gesture lands
+    // on the just-rendered backdrop — it must NOT close the dialog
+    await act(async () => {
+      backdrop.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+    })
+    expect(onCancel).not.toHaveBeenCalled()
+
+    // after the guard window, a genuine outside click closes it
+    await new Promise((r) => setTimeout(r, 400))
+    await act(async () => {
+      backdrop.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+    })
+    expect(onCancel).toHaveBeenCalledTimes(1)
+  })
 })

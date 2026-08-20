@@ -7,30 +7,21 @@ function formatTime(iso) {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
-const DOUBLE_TAP_MS = 300
-
-/**
- * Pure double-tap detector (testable): a second tap within the threshold
- * after the first registers as a double tap.
- */
-export function isDoubleTap(prevTimestamp, now, threshold = DOUBLE_TAP_MS) {
-  if (!prevTimestamp) return false
-  return now - prevTimestamp <= threshold
-}
+const LONG_PRESS_MS = 550
 
 // ---------------------------------------------------------------------------
 // A single message bubble. Deleted messages render as an italic placeholder —
 // the body is never shown again after deletion.
 //
 // Deleting YOUR OWN message (not-yet-deleted) is gesture-driven:
-//   • desktop  — RIGHT-CLICK the message → small "Delete message" menu
-//   • touch    — DOUBLE-TAP the message → delete (with confirm in the parent)
+//   • desktop — RIGHT-CLICK the message → small "Delete message" menu
+//   • touch   — LONG-PRESS (hold ~0.5s) the message → delete (parent opens
+//               the confirm dialog)
 // ---------------------------------------------------------------------------
 
 export default function MessageBubble({ message, own, onDelete }) {
   const [menu, setMenu] = useState(null) // { x, y } cursor position
-  const lastTapRef = useRef(0)
-  const tapTimerRef = useRef(null)
+  const touchTimerRef = useRef(null)
 
   const canDelete = Boolean(own && !message.deleted_at && onDelete)
 
@@ -56,17 +47,24 @@ export default function MessageBubble({ message, own, onDelete }) {
     }
   }, [menu])
 
+  // clear any pending long-press timer on unmount
+  useEffect(
+    () => () => {
+      if (touchTimerRef.current) clearTimeout(touchTimerRef.current)
+    },
+    [],
+  )
+
   const requestDelete = () => {
     closeMenu()
-    if (tapTimerRef.current) clearTimeout(tapTimerRef.current)
-    lastTapRef.current = 0
     if (canDelete) onDelete(message)
   }
 
+  // ---- desktop: right-click menu -------------------------------------------
   const handleContextMenu = (e) => {
     if (!canDelete) return
-    // on coarse pointers (phone/tablet) long-press shows the native menu —
-    // double-tap is the touch gesture instead
+    // on coarse pointers (phone/tablet) we use long-press instead, and we
+    // don't hijack the native long-press context menu
     if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return
     e.preventDefault()
     const pad = 8
@@ -77,19 +75,33 @@ export default function MessageBubble({ message, own, onDelete }) {
     setMenu({ x: Math.max(pad, x), y: Math.max(pad, y) })
   }
 
-  const handleTouchEnd = () => {
-    if (!canDelete) return
-    const now = Date.now()
-    if (isDoubleTap(lastTapRef.current, now)) {
-      if (tapTimerRef.current) clearTimeout(tapTimerRef.current)
-      lastTapRef.current = 0
-      requestDelete()
-    } else {
-      lastTapRef.current = now
-      tapTimerRef.current = setTimeout(() => {
-        lastTapRef.current = 0
-      }, DOUBLE_TAP_MS + 80)
+  // ---- touch: long-press to delete (phone/tablet only) ----------------------
+  const clearTouchTimer = () => {
+    if (touchTimerRef.current) {
+      clearTimeout(touchTimerRef.current)
+      touchTimerRef.current = null
     }
+  }
+
+  const handleTouchStart = (e) => {
+    if (!canDelete) return
+    // don't start a long-press during a two-finger gesture (scroll/pinch)
+    if (e.touches && e.touches.length > 1) return
+    clearTouchTimer()
+    touchTimerRef.current = setTimeout(() => {
+      touchTimerRef.current = null
+      requestDelete()
+    }, LONG_PRESS_MS)
+  }
+
+  const handleTouchMove = () => {
+    // user is scrolling — cancel the long-press
+    clearTouchTimer()
+  }
+
+  const handleTouchEnd = () => {
+    // released before the hold completed — a normal tap, do nothing
+    clearTouchTimer()
   }
 
   if (message.deleted_at) {
@@ -106,6 +118,8 @@ export default function MessageBubble({ message, own, onDelete }) {
       <div
         className={`msg ${own ? 'msg--own' : 'msg--other'}`}
         onContextMenu={canDelete ? handleContextMenu : undefined}
+        onTouchStart={canDelete ? handleTouchStart : undefined}
+        onTouchMove={canDelete ? handleTouchMove : undefined}
         onTouchEnd={canDelete ? handleTouchEnd : undefined}
       >
         <span className="msg__body">{message.body}</span>

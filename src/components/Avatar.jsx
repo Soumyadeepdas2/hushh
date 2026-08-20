@@ -25,6 +25,8 @@ export default function Avatar({ profile, size = 'md', className = '', navy = fa
         alt=""
         className={`avatar avatar--img avatar--${size} ${className}`.trim()}
         aria-hidden="true"
+        loading="lazy"
+        decoding="async"
       />
     )
   }

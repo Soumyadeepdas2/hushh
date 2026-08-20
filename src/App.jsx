@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { RecoveryProvider } from './hooks/useRecovery'
@@ -8,6 +9,7 @@ import Login from './pages/Login'
 import ForgotPassword from './pages/ForgotPassword'
 import Chat from './pages/Chat'
 import { isSupabaseConfigured } from './lib/supabase'
+import { preloadCaptcha } from './lib/captcha'
 
 // Redirect authenticated users away from the auth pages.
 function GuestOnly({ children }) {
@@ -18,6 +20,12 @@ function GuestOnly({ children }) {
 }
 
 export default function App() {
+  // start loading hCaptcha as early as possible so Sign in / Create account
+  // don't wait on a slow first load (especially on phones)
+  useEffect(() => {
+    preloadCaptcha()
+  }, [])
+
   return (
     <AuthProvider>
       {/* RecoveryProvider renders the one-time Recovery ID dialog ABOVE the

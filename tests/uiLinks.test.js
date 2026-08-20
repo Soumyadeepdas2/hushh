@@ -118,8 +118,14 @@ describe('unread badge clears on open + hover bin removed (bug fixes)', () => {
 
   it('MessageBubble deletes via gestures, not a visible button', () => {
     const source = read('src/components/MessageBubble.jsx')
+    // desktop right-click menu
     expect(source).toContain('onContextMenu={canDelete ? handleContextMenu : undefined}')
+    // touch long-press (phone) — no double-tap logic anymore
+    expect(source).toContain('onTouchStart={canDelete ? handleTouchStart : undefined}')
+    expect(source).toContain('onTouchMove={canDelete ? handleTouchMove : undefined}')
     expect(source).toContain('onTouchEnd={canDelete ? handleTouchEnd : undefined}')
+    expect(source).not.toContain('isDoubleTap')
+    expect(source).toContain('LONG_PRESS_MS')
     expect(source).toContain('Delete message')
     // no hover trash button anymore (msg__deleted-text is a different class —
     // match the exact standalone delete button class, not the substring)
@@ -190,5 +196,33 @@ describe('mobile keyboard — composer stays above the keyboard', () => {
     const input = read('src/components/MessageInput.jsx')
     expect(input).toContain('onFocus={handleFocus}')
     expect(input).toContain('scrollIntoView({ block: \'nearest\', behavior: \'smooth\' })')
+  })
+})
+
+describe('phone performance + hCaptcha robustness', () => {
+  it('sidebar refresh is debounced (fewer re-fetches on phones)', () => {
+    const chat = read('src/pages/Chat.jsx')
+    expect(chat).toContain('reloadTimerRef')
+    expect(chat).toContain('setTimeout(() => {')
+    expect(chat).toContain('loadConversations()')
+    expect(chat).toContain('250')
+  })
+
+  it('avatar images are lazy + async decoded', () => {
+    const avatar = read('src/components/Avatar.jsx')
+    expect(avatar).toContain('loading="lazy"')
+    expect(avatar).toContain('decoding="async"')
+  })
+
+  it('hCaptcha is preconnected, preloaded, and resets precisely', () => {
+    const html = read('index.html')
+    expect(html).toContain('preconnect')
+    expect(html).toContain('https://js.hcaptcha.com')
+    const captcha = read('src/lib/captcha.js')
+    expect(captcha).toContain('preloadCaptcha')
+    expect(captcha).toContain('renderedWidgetIds')
+    expect(captcha).toContain('window.hcaptcha.reset(id)')
+    const app = read('src/App.jsx')
+    expect(app).toContain("preloadCaptcha()")
   })
 })

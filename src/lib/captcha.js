@@ -61,28 +61,53 @@ export function loadCaptchaScript() {
 }
 
 /**
+ * Eagerly start loading hCaptcha (call on app mount) so the widget is already
+ * available by the time the user reaches Sign in / Create account — makes the
+ * widget appear instantly instead of after a slow phone network round-trip.
+ */
+export function preloadCaptcha() {
+  if (isCaptchaEnabled()) {
+    loadCaptchaScript().catch(() => {})
+  }
+}
+
+// Track rendered widget ids so resets can target the exact widget (a token is
+// single-use — after a failed submit the old tick MUST be cleared so a fresh
+// verification is required).
+const renderedWidgetIds = []
+
+/**
  * Render the widget into a container (DOM element or id string).
  * `onToken` receives the verification token (or null when the widget
  * resets/expires/fails).
  */
 export function renderCaptcha(container, onToken) {
   if (typeof window === 'undefined' || !window.hcaptcha) return false
-  window.hcaptcha.render(container, {
+  const widgetId = window.hcaptcha.render(container, {
     sitekey: CAPTCHA_SITE_KEY,
     callback: (token) => onToken(token),
     'expired-callback': () => onToken(null),
     'error-callback': () => onToken(null),
   })
+  if (typeof widgetId === 'number' && !renderedWidgetIds.includes(widgetId)) {
+    renderedWidgetIds.push(widgetId)
+  }
   return true
 }
 
-/** Reset the widget (used after a failed submit so a fresh token is required). */
+/**
+ * Reset the widget (used after a failed submit so a fresh token is required).
+ * Resets each rendered widget precisely, with a full reset() fallback.
+ */
 export function resetCaptcha() {
-  if (typeof window !== 'undefined' && window.hcaptcha) {
-    try {
+  if (typeof window === 'undefined' || !window.hcaptcha) return
+  try {
+    if (renderedWidgetIds.length > 0) {
+      for (const id of renderedWidgetIds) window.hcaptcha.reset(id)
+    } else {
       window.hcaptcha.reset()
-    } catch {
-      /* noop */
     }
+  } catch {
+    /* noop */
   }
 }

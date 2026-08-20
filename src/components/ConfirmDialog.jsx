@@ -4,7 +4,14 @@ import { useEffect, useRef } from 'react'
 // In-app confirmation modal — replaces window.confirm() for destructive
 // actions (delete chat, delete message). Matches the Hushh design system.
 // Closes on Cancel / Escape / outside click.
+//
+// NOTE: outside-click is IGNORED for a short window after opening. On touch
+// devices the browser fires a synthesized mousedown right after touchend,
+// which would land on the just-rendered backdrop and close the dialog the
+// instant it appears. The guard prevents that flash-close.
 // ---------------------------------------------------------------------------
+
+const OUTSIDE_IGNORE_MS = 350
 
 export default function ConfirmDialog({
   open,
@@ -18,10 +25,12 @@ export default function ConfirmDialog({
   onCancel,
 }) {
   const confirmRef = useRef(null)
+  const openAtRef = useRef(0)
 
-  // focus the confirm button on open; close on Escape / outside click
+  // focus the confirm button on open; close on Escape; guard outside-clicks
   useEffect(() => {
     if (!open) return undefined
+    openAtRef.current = Date.now()
     confirmRef.current?.focus()
     const onKey = (e) => {
       if (e.key === 'Escape') onCancel()
@@ -32,13 +41,15 @@ export default function ConfirmDialog({
 
   if (!open) return null
 
+  const handleBackdropMouseDown = (e) => {
+    if (e.target !== e.currentTarget) return
+    // ignore clicks that arrive within the guard window after opening
+    if (Date.now() - openAtRef.current < OUTSIDE_IGNORE_MS) return
+    onCancel()
+  }
+
   return (
-    <div
-      className="dialog-backdrop"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onCancel()
-      }}
-    >
+    <div className="dialog-backdrop" onMouseDown={handleBackdropMouseDown}>
       <div
         className="dialog confirm-dialog"
         role="alertdialog"
@@ -56,13 +67,7 @@ export default function ConfirmDialog({
           </p>
         )}
         <div className="dialog__actions confirm-dialog__actions">
-          <button
-            type="button"
-            className="btn"
-            onClick={onCancel}
-            disabled={busy}
-            autoFocus={false}
-          >
+          <button type="button" className="btn" onClick={onCancel} disabled={busy}>
             {cancelLabel}
           </button>
           <button

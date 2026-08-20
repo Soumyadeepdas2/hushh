@@ -1,4 +1,4 @@
-# SPA fallback: serve index.html for all routes 
+# SPA fallback: serve index.html for all routes (fixes refresh 404 on /chat etc.)
 [[redirects]]
   from = "/*"
   to = "/index.html"

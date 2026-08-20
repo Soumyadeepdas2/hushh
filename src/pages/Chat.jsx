@@ -178,9 +178,15 @@ export default function Chat() {
   }, [session, profile, loadConversations])
 
   // Realtime: refresh the sidebar whenever anything changes in a conversation
-  // the user is part of.
+  // the user is part of. Debounced (trailing ~250ms) so a burst of events
+  // doesn't trigger many full re-fetches — keeps phones smooth.
+  const reloadTimerRef = useRef(null)
   useRealtimeConversations(() => {
-    loadConversations()
+    if (reloadTimerRef.current) clearTimeout(reloadTimerRef.current)
+    reloadTimerRef.current = setTimeout(() => {
+      reloadTimerRef.current = null
+      loadConversations()
+    }, 250)
   })
 
   // ---- opening a conversation ----------------------------------------------
