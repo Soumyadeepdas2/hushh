@@ -1,0 +1,27 @@
+{
+  "name": "hushh",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "hushh — a private real-time messaging app. Chat IDs instead of email addresses.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:security": "node scripts/security-audit-live.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "jsdom": "^29.1.1",
+    "vite": "^5.4.8",
+    "vitest": "^2.1.1"
+  }
+}
