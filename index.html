@@ -9,6 +9,16 @@
     <!-- preconnect to hCaptcha so the widget loads fast (especially on phones) -->
     <link rel="preconnect" href="https://js.hcaptcha.com" crossorigin />
     <link rel="preconnect" href="https://newassets.hcaptcha.com" crossorigin />
+    <!-- self-hosted landing fonts (no third-party font requests) — preloaded
+         so the hand-drawn headline paints without a flash of fallback text -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/shantell-sans.woff2"
+      crossorigin
+    />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/nunito.woff2" crossorigin />
     <title>hushh — private messaging</title>
     <meta
       name="description"

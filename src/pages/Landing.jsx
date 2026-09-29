@@ -2,9 +2,15 @@ import { Link } from 'react-router-dom'
 import Logo from '../components/Logo'
 
 // ---------------------------------------------------------------------------
-// Landing — quiet, premium, product-feeling. Compact nav, composed hero with
-// a private-chat preview visual, structured "How it works" and "Quiet by
-// design" feature sections, compact footer.
+// Landing — warm, playful, product-feeling.
+//
+// Nav + hero were redesigned: the artwork background carries the decoration
+// (orange shapes), the headline is hand-drawn (Shantell Sans) with a hand-drawn
+// swoosh, and the hero visual is a faithful miniature of the REAL chat screen
+// (pill bubbles, navy Send button, no read receipts).
+//
+// The sections below the hero (how it works / quiet by design / privacy) and
+// the footer are unchanged.
 // ---------------------------------------------------------------------------
 
 function ChatIcon() {
@@ -68,86 +74,190 @@ function SparkIcon() {
   )
 }
 
+/* ---- hero-only icons (small, solid strokes to match the hand-drawn feel) --- */
+
+function PillLockIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="4" y="10.5" width="15" height="10" rx="3" fill="currentColor" />
+      <path
+        d="M8 10.5V7.5a4 4 0 0 1 8 0v3"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function PlusIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 5v14M5 12h14"
+        stroke="currentColor"
+        strokeWidth="2.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function ArrowIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 12h15M13 6l6 6-6 6"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function ShieldIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 3l7 3v6c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V6l7-3z" fill="var(--ok)" />
+      <path
+        d="M8.6 12.1l2.3 2.3 4.4-4.6"
+        stroke="#fff"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function Swoosh() {
+  return (
+    <svg
+      viewBox="0 0 420 26"
+      fill="none"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M6 17C58 5 128 3 200 6c60 2.5 128 5 214 13"
+        stroke="var(--yellow)"
+        strokeWidth="7"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
 export default function Landing() {
   return (
     <div className="landing">
-      {/* ---------------- compact nav ---------------- */}
-      <header className="landing__nav">
-        <Link to="/" className="landing__brand" aria-label="hushh home">
-          <Logo size="sm" />
-        </Link>
-        <nav className="landing__nav-links">
-          <Link to="/login" className="btn btn--ghost">
-            Sign in
+      {/* ---------------- nav + hero (artwork background) ---------------- */}
+      <div className="landing__top">
+        <header className="landing__nav">
+          <Link to="/" className="landing__brand" aria-label="hushh home">
+            <Logo size="sm" />
           </Link>
-          <Link to="/register" className="btn btn--accent">
-            Create your hushh
-          </Link>
-        </nav>
-      </header>
+          <nav className="landing__nav-links">
+            <Link to="/login" className="landing__pill">
+              Sign in
+            </Link>
+            <Link to="/register" className="landing__pill landing__pill--yellow">
+              Create your hushh
+            </Link>
+          </nav>
+        </header>
 
-      <main className="landing__main">
-        {/* ---------------- hero ---------------- */}
         <section className="hero">
           <div className="hero__text">
-            <p className="hero__kicker">Private real-time messaging</p>
+            <p className="hero__kicker">
+              <PillLockIcon />
+              Private real-time messaging
+            </p>
+
             <h1 className="hero__title">
-              Say hello <span className="hero__accent">quietly</span>.
+              <span className="hero__line">Say hello</span>
+              <span className="hero__line hero__line--accent">
+                quietly<span className="hero__dot">.</span>
+              </span>
+              <span className="hero__swoosh" aria-hidden="true">
+                <Swoosh />
+              </span>
             </h1>
+
             <p className="hero__sub">
               hushh is a private messenger built around a Chat ID — never your
               email address. Find people, say hello, and leave the noise
               behind.
             </p>
+
             <div className="hero__actions">
-              <Link to="/register" className="btn btn--accent btn--lg">
+              <Link to="/register" className="btn btn--accent-pill btn--lg">
+                <PlusIcon />
                 Create your hushh
               </Link>
-              <Link to="/login" className="btn btn--ghost btn--lg">
+              <Link to="/login" className="btn btn--ghost-pill btn--lg">
                 I already have one
+                <ArrowIcon />
               </Link>
             </div>
+
             <p className="hero__note">
-              <span className="dot" /> Your email address stays hidden. Always.
+              <ShieldIcon />
+              Your email address stays hidden. Always.
             </p>
           </div>
 
-          <div className="hero-visual" aria-hidden="true">
-            <span className="stamp">just between us</span>
+          <div className="hero__visual" aria-hidden="true">
             <div className="chat-preview">
               <div className="chat-preview__head">
-                <span className="avatar avatar--sm">S</span>
+                <span className="chat-preview__avatar">S</span>
                 <div className="chat-preview__who">
                   <span className="chat-preview__name">soumyadeep</span>
                   <span className="chat-preview__status">
                     <i /> online
                   </span>
                 </div>
-                <span className="chat-preview__tag">private</span>
+                <span className="chat-preview__tag">
+                  <PillLockIcon />
+                  private
+                </span>
               </div>
+
               <div className="chat-preview__msgs">
-                <div className="bubble bubble--in">
-                  <span className="bubble__text">Hello! 👋</span>
+                <div className="pv-bubble pv-bubble--in">
+                  <span>Hey! 👋</span>
                   <time>9:41</time>
                 </div>
-                <div className="bubble bubble--out">
-                  <span className="bubble__text">Hey! Long time no see</span>
+                <div className="pv-bubble pv-bubble--out">
+                  <span>Hey! Long time no see</span>
                   <time>9:42</time>
                 </div>
-                <div className="bubble bubble--in">
-                  <span className="bubble__text">Coffee this week?</span>
+                <div className="pv-bubble pv-bubble--in">
+                  <span>Coffee this week?</span>
                   <time>9:43</time>
                 </div>
               </div>
+
               <div className="chat-preview__composer">
-                <span>Say hello…</span>
+                <span className="chat-preview__input">Say hello…</span>
                 <span className="chat-preview__send">Send</span>
               </div>
             </div>
-            <span className="hero-deco hero-deco--dot" />
-            <span className="hero-deco hero-deco--ring" />
           </div>
         </section>
+      </div>
+
+      <main className="landing__main">
+        {/* decorative shapes — purely visual, mirrors the artwork's orange */}
+        <div className="landing__deco" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
 
         {/* ---------------- how it works ---------------- */}
         <section className="how" id="how-it-works">
@@ -315,17 +425,21 @@ export default function Landing() {
             <div className="site-footer__social-icons">
               <a
                 className="social-btn"
-                href="#"
-                aria-label="hushh on X"
-                title="hushh on X"
+                href="https://www.linkedin.com/company/hushhconnect/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="hushh on LinkedIn"
+                title="hushh on LinkedIn"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.36V9h3.41v1.56h.05a3.74 3.74 0 0 1 3.37-1.85c3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zm1.78 13.02H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z" />
                 </svg>
               </a>
               <a
                 className="social-btn"
-                href="#"
+                href="https://www.instagram.com/hushhconnect/"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="hushh on Instagram"
                 title="hushh on Instagram"
               >
@@ -335,22 +449,26 @@ export default function Landing() {
                   <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none" />
                 </svg>
               </a>
-              <a
-                className="social-btn"
-                href="#"
-                aria-label="hushh on GitHub"
-                title="hushh on GitHub"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49 0-.24-.01-.88-.01-1.72-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.5-1.11-1.5-.91-.63.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.89 1.57 2.34 1.12 2.91.85.09-.66.35-1.12.63-1.37-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.7 0 0 .84-.28 2.75 1.05a9.3 9.3 0 0 1 5 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.4.2 2.44.1 2.7.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.18.6.69.49A10.25 10.25 0 0 0 22 12.25C22 6.58 17.52 2 12 2z" />
-                </svg>
-              </a>
             </div>
           </div>
         </div>
 
         <div className="site-footer__bottom">
-          <span>© {new Date().getFullYear()} hushh — a private place to talk.</span>
+          <span className="site-footer__copy">
+            &copy; {new Date().getFullYear()} hushh
+          </span>
+
+          <a
+            className="btn btn--accent-pill site-footer__meet-btn"
+            href="https://www.soumyadeep.space/"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Soumyadeep Das — Developer, Vadodara"
+          >
+            Meet Soumyadeep
+            <ArrowIcon />
+          </a>
+
           <div className="site-footer__bottom-links">
             <a href="#privacy">Privacy</a>
             <span className="site-footer__sep" />

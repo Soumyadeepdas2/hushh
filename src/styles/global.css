@@ -54,6 +54,29 @@
   --topbar-h: 112px;
 }
 
+/* ---------- fonts -------------------------------------------------------
+   Self-hosted (no third-party CDN requests from a privacy product).
+   Shantell Sans  -> landing headline only (hand-drawn marker feel)
+   Nunito         -> landing body / labels / hero chat card
+   Both are latin-subset variable woff2, wght 300-800 / 400-800.
+   Fetch/refresh with:  python3 scripts/fetch-landing-fonts.py
+   ------------------------------------------------------------------------ */
+@font-face {
+  font-family: 'Shantell Sans';
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url('/fonts/shantell-sans.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('/fonts/nunito.woff2') format('woff2');
+}
+
 /* ---------- reset ---------- */
 *,
 *::before,
@@ -662,15 +685,55 @@ select.input {
    LANDING
    =========================================================================== */
 .landing {
+  /* landing-scoped tokens — the app palette is untouched, these only ever
+     apply inside .landing */
+  --pill-bg: #ffe9bd;
+  --pill-ink: #8a5a00;
+  /* warm surfaces so nothing below the hero reads as stark white */
+  --surface-warm: #fffdf7;
+  --paper-warm: #fffaf0;
+  --line-warm: rgba(120, 88, 30, 0.14);
+  --font-display: 'Shantell Sans', var(--font-serif);
+  --font-landing: 'Nunito', var(--font-body);
+
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  /* the page warms up as it scrolls: white under the artwork at the top,
+     then the same warm cream family the sections use. The soft amber glows
+     echo the artwork's orange (#fdae56) so the lower half reads as the same
+     visual language instead of a blank sheet. */
+  background-color: #fbf0dc;
   background-image:
-    linear-gradient(180deg, rgba(247, 240, 222, 0.66), rgba(247, 240, 222, 0.84)),
-    url('/background.jpg');
+    radial-gradient(760px 520px at 100% 560px, rgba(253, 174, 86, 0.30), transparent 66%),
+    radial-gradient(640px 460px at 0% 1220px, rgba(253, 174, 86, 0.22), transparent 68%),
+    radial-gradient(820px 560px at 100% 1880px, rgba(253, 174, 86, 0.26), transparent 68%),
+    radial-gradient(680px 480px at 0% 2560px, rgba(253, 174, 86, 0.20), transparent 70%),
+    linear-gradient(180deg, #ffffff 0, #fff8ea 340px, #fdf1dd 980px, #fbe9cf 100%);
+  font-family: var(--font-landing);
+  overflow-x: clip;
+}
+
+/* nav + hero sit on the artwork. It is a decorative graphic, so it lives on
+   a masked pseudo-element that fades itself out — no hard edge and no colour
+   matching needed, the page wash simply shows through at the bottom. */
+.landing__top {
+  position: relative;
+  background: transparent;
+}
+
+.landing__top::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/background.png');
   background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
+  background-position: center top;
+  background-repeat: no-repeat;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 74%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 74%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* ===========================================================================
@@ -728,31 +791,25 @@ select.input {
   gap: 1rem;
   height: var(--topbar-h);
   padding: 0 2.2rem;
-  border-bottom: 1px solid var(--line);
-  background: rgba(247, 240, 222, 0.94);
-  box-shadow: inset 0 3px 0 0 var(--yellow);
-}
-
-.landing__nav::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -14px;
-  height: 14px;
-  pointer-events: none;
-  background: linear-gradient(180deg, rgba(22, 35, 46, 0.06), transparent);
+  /* translucent so the artwork still reads through, blurred so scrolled
+     content never shows through when the bar is stuck */
+  background: rgba(255, 255, 255, 0.62);
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
+  border-bottom: 1px solid rgba(22, 35, 46, 0.07);
+  box-shadow: inset 0 3px 0 0 var(--yellow); /* brand accent strip */
 }
 
 .landing__brand {
   display: inline-flex;
   align-items: center;
   text-decoration: none;
+  line-height: 0;
 }
 
 /* nav/footer logos sit on one line with the buttons */
 .landing__brand .logo-img {
-  width: 200px; /* matches the top bar — big, never cut */
+  width: 186px;
 }
 
 .site-footer__logo .logo-img {
@@ -762,85 +819,225 @@ select.input {
 .landing__nav-links {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.65rem;
+}
+
+/* pill nav buttons */
+.landing__pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  min-height: 44px;
+  padding: 0.72rem 1.5rem;
+  border-radius: 999px;
+  border: 1.5px solid rgba(22, 35, 46, 0.16);
+  background: rgba(255, 253, 249, 0.85);
+  color: var(--ink);
+  text-decoration: none;
+  font-family: var(--font-landing);
+  font-weight: 800;
+  font-size: 0.92rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.landing__pill:hover {
+  border-color: var(--ink);
+}
+
+.landing__pill--yellow {
+  background: var(--yellow);
+  border-color: var(--yellow);
+  box-shadow: 0 8px 18px -10px rgba(246, 181, 0, 0.95);
+}
+
+.landing__pill--yellow:hover {
+  background: var(--amber);
+  border-color: var(--amber);
 }
 
 /* ---- hero ---- */
 .landing__main {
+  position: relative;
   flex: 1;
   width: 100%;
 }
 
+/* Decorative shapes echoing the artwork's orange, carried down the page.
+   They bleed off the edges (clipped by .landing) so the lower half reads as
+   the same visual language as the hero — not a blank sheet. Kept low-opacity
+   and always behind the content so body text stays readable. */
+.landing__deco {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.landing__deco span {
+  position: absolute;
+  display: block;
+  background: #fdae56;
+  border-radius: 50%;
+}
+
+.landing__deco span:nth-child(1) {
+  width: 460px;
+  height: 460px;
+  right: -190px;
+  top: 4%;
+  opacity: 0.20;
+}
+
+.landing__deco span:nth-child(2) {
+  width: 300px;
+  height: 460px;
+  left: -150px;
+  top: 26%;
+  border-radius: 46% 54% 52% 48%;
+  opacity: 0.15;
+}
+
+.landing__deco span:nth-child(3) {
+  width: 380px;
+  height: 380px;
+  right: -170px;
+  top: 52%;
+  opacity: 0.17;
+}
+
+.landing__deco span:nth-child(4) {
+  width: 520px;
+  height: 420px;
+  left: -240px;
+  top: 74%;
+  border-radius: 50% 50% 44% 56%;
+  opacity: 0.14;
+}
+
+/* every real section sits above the decoration */
+.how,
+.features,
+.privacy {
+  position: relative;
+  z-index: 1;
+}
+
 .hero {
-  max-width: 1180px;
+  position: relative;
+  z-index: 2; /* above the artwork fade */
+  max-width: 1220px;
   margin: 0 auto;
-  padding: 4rem 2.2rem 3rem;
+  padding: 2.2rem 2.4rem 3rem;
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr);
+  gap: 2rem;
   align-items: center;
-  gap: clamp(2rem, 5vw, 4.5rem);
-  min-height: calc(100vh - 92px);
 }
 
 .hero__kicker {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  margin: 0 0 1.1rem;
-  font-size: 0.72rem;
+  margin: 0 0 1.4rem;
+  padding: 0.5rem 1.1rem 0.5rem 0.85rem;
+  border-radius: 999px;
+  /* near-white (not the pale yellow) so it reads over the orange artwork */
+  background: rgba(255, 253, 249, 0.94);
+  color: var(--pill-ink);
+  font-family: var(--font-landing);
+  font-size: 0.74rem;
   font-weight: 800;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--orange);
-}
-
-.hero__kicker::before {
-  content: '';
-  width: 26px;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--yellow);
 }
 
 .hero__title {
-  font-family: var(--font-serif);
-  font-size: clamp(2.5rem, 5vw, 3.9rem);
-  line-height: 1.04;
-  letter-spacing: -0.025em;
+  position: relative;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(3rem, 5.6vw, 4.6rem);
+  line-height: 0.98;
+  letter-spacing: -0.012em;
   margin: 0 0 1.2rem;
 }
 
-.hero__accent {
-  position: relative;
-  color: var(--orange);
-  font-style: italic;
-  white-space: nowrap;
+.hero__line {
+  display: block;
+  color: var(--ink);
 }
 
-.hero__accent::after {
-  content: '';
-  position: absolute;
-  left: 0.05em;
-  right: 0.05em;
-  bottom: 0.04em;
-  height: 0.28em;
-  background: rgba(246, 181, 0, 0.35);
-  z-index: -1;
-  border-radius: 3px;
+.hero__line--accent {
+  display: inline-block;
+  color: var(--yellow);
+}
+
+.hero__dot {
+  color: var(--ink);
+}
+
+/* hand-drawn underline under the accent word */
+.hero__swoosh {
+  display: block;
+  width: min(78%, 430px);
+  height: 22px;
+  margin: 0.5rem 0 0.5rem 0.4rem;
+}
+
+.hero__swoosh svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .hero__sub {
-  max-width: 470px;
-  font-size: 1.08rem;
+  max-width: 44ch;
+  font-family: var(--font-landing);
+  font-size: 1.06rem;
+  font-weight: 500;
+  line-height: 1.62;
   color: var(--ink-soft);
-  margin: 0 0 2rem;
+  margin: 0 0 1.9rem;
 }
 
 .hero__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 0.85rem;
   margin-bottom: 1.6rem;
+}
+
+/* rounded pill CTAs (hero only — the rest of the app keeps .btn--accent) */
+.btn--accent-pill,
+.btn--ghost-pill {
+  border-radius: 999px;
+  font-family: var(--font-landing);
+  font-weight: 800;
+  gap: 0.55rem;
+}
+
+.btn--accent-pill {
+  background: var(--yellow);
+  border-color: var(--yellow);
+  color: var(--ink);
+  box-shadow: 0 12px 24px -12px rgba(246, 181, 0, 0.95);
+}
+
+.btn--accent-pill:hover {
+  background: var(--amber);
+  border-color: var(--amber);
+}
+
+.btn--ghost-pill {
+  background: rgba(255, 253, 249, 0.85);
+  border-color: rgba(22, 35, 46, 0.14);
+  color: var(--ink);
+}
+
+.btn--ghost-pill:hover {
+  border-color: var(--ink);
 }
 
 .hero__note {
@@ -848,32 +1045,32 @@ select.input {
   align-items: center;
   gap: 0.5rem;
   margin: 0;
-  font-size: 0.84rem;
-  color: var(--muted);
+  font-family: var(--font-landing);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ink-soft);
 }
 
-.hero__note .dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--ok);
-  box-shadow: 0 0 0 3px rgba(61, 122, 79, 0.18);
+.hero__note svg {
   flex-shrink: 0;
 }
 
-/* ---- hero visual: private-chat preview ---- */
-.hero-visual {
+/* ---- hero visual: a faithful miniature of the real chat screen ---- */
+.hero__visual {
   position: relative;
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
 .chat-preview {
-  width: min(400px, 100%);
+  position: relative;
+  z-index: 2;
+  width: min(430px, 100%);
   background: var(--paper);
   border: 1px solid var(--line);
-  border-radius: 18px;
-  box-shadow: var(--shadow-lift);
+  border-radius: 26px;
+  box-shadow: 0 34px 60px -26px rgba(22, 35, 46, 0.42);
   overflow: hidden;
 }
 
@@ -881,9 +1078,24 @@ select.input {
   display: flex;
   align-items: center;
   gap: 0.7rem;
-  padding: 0.85rem 1rem;
+  padding: 1rem 1.1rem;
   border-bottom: 1px solid var(--line);
-  background: #fffdf7;
+  background: var(--paper);
+}
+
+.chat-preview__avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--yellow);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-landing);
+  font-weight: 800;
+  font-size: 1.2rem;
+  flex: 0 0 auto;
 }
 
 .chat-preview__who {
@@ -891,11 +1103,13 @@ select.input {
   flex-direction: column;
   min-width: 0;
   flex: 1;
+  line-height: 1.25;
 }
 
 .chat-preview__name {
+  font-family: var(--font-landing);
   font-weight: 800;
-  font-size: 0.92rem;
+  font-size: 1.06rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -905,26 +1119,31 @@ select.input {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.74rem;
+  font-family: var(--font-landing);
+  font-size: 0.84rem;
+  font-weight: 700;
   color: var(--ok);
 }
 
 .chat-preview__status i {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--ok);
 }
 
 .chat-preview__tag {
-  font-size: 0.66rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--pill-bg);
+  color: var(--pill-ink);
+  font-family: var(--font-landing);
   font-weight: 800;
-  letter-spacing: 0.12em;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--ink-soft);
-  border: 1px solid rgba(246, 181, 0, 0.55);
-  background: rgba(246, 181, 0, 0.12);
-  padding: 0.22rem 0.55rem;
+  padding: 0.42rem 0.8rem;
   border-radius: 999px;
   white-space: nowrap;
 }
@@ -932,106 +1151,92 @@ select.input {
 .chat-preview__msgs {
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
-  padding: 1.05rem 1rem;
+  gap: 0.7rem;
+  padding: 1.1rem;
   background: var(--cream);
 }
 
-.chat-preview .bubble {
-  max-width: 82%;
+/* bubble geometry mirrors .msg / .msg--own / .msg--other in the real chat */
+.pv-bubble {
+  max-width: 72%;
   display: flex;
   align-items: baseline;
   gap: 0.45rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 13px;
-  font-size: 0.88rem;
-  line-height: 1.4;
+  padding: 0.6rem 0.9rem;
+  border-radius: 15px;
+  font-family: var(--font-landing);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.45;
 }
 
-.chat-preview .bubble time {
-  font-size: 0.62rem;
-  opacity: 0.6;
+.pv-bubble time {
+  font-size: 0.66rem;
   white-space: nowrap;
 }
 
-.chat-preview .bubble--in {
+.pv-bubble--in {
   align-self: flex-start;
-  background: #fff;
+  background: var(--paper);
   border: 1px solid var(--line);
-  border-bottom-left-radius: 4px;
   color: var(--ink);
+  border-bottom-left-radius: 5px;
 }
 
-.chat-preview .bubble--out {
+.pv-bubble--in time {
+  color: var(--muted);
+}
+
+.pv-bubble--out {
   align-self: flex-end;
   background: var(--ink);
   color: var(--cream);
-  border-bottom-right-radius: 4px;
+  border-bottom-right-radius: 5px;
 }
 
-.chat-preview .bubble--out time {
-  opacity: 0.7;
+/* own-message timestamp colour, same as .msg--own .msg__time */
+.pv-bubble--out time {
+  color: var(--yellow-soft);
+  opacity: 0.85;
 }
 
 .chat-preview__composer {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
-  padding: 0.75rem 1rem;
+  align-items: flex-end;
+  gap: 0.7rem;
+  padding: 0.9rem 1rem;
   border-top: 1px solid var(--line);
-  background: #fffdf7;
-  font-size: 0.82rem;
-  color: #a7b1bb;
+  background: var(--paper);
 }
 
+.chat-preview__input {
+  flex: 1;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--cream);
+  color: #a9b0be;
+  font-family: var(--font-landing);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+/* the real composer's Send button: navy, cream text, 10px radius */
 .chat-preview__send {
-  font-size: 0.78rem;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--cream);
+  font-family: var(--font-landing);
   font-weight: 800;
-  color: var(--ink);
-  background: var(--yellow);
-  padding: 0.3rem 0.7rem;
-  border-radius: 7px;
-}
-
-/* decorative shapes */
-.hero-deco {
-  position: absolute;
-  pointer-events: none;
-}
-
-.hero-deco--dot {
-  top: -14px;
-  right: 4%;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--yellow);
-}
-
-.hero-deco--ring {
-  bottom: -16px;
-  left: 2%;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  border: 3px solid rgba(226, 112, 29, 0.5);
-}
-
-.stamp {
-  position: absolute;
-  top: -18px;
-  left: -14px;
-  transform: rotate(-8deg);
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
-  color: var(--orange);
-  border: 1.5px solid rgba(226, 112, 29, 0.55);
-  border-radius: 5px;
-  padding: 0.28rem 0.55rem;
-  background: rgba(255, 253, 245, 0.85);
+  font-size: 0.95rem;
+  flex: 0 0 auto;
 }
 
 /* ---- how it works ---- */
@@ -1039,7 +1244,7 @@ select.input {
   max-width: 1180px;
   margin: 0 auto;
   padding: 3rem 2.2rem 3.4rem;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--line-warm);
 }
 
 .how__head {
@@ -1078,7 +1283,7 @@ select.input {
 }
 
 .how__item {
-  background: rgba(255, 253, 245, 0.72);
+  background: var(--surface-warm);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   padding: 1.5rem 1.4rem 1.4rem;
@@ -1130,7 +1335,7 @@ select.input {
   max-width: 1180px;
   margin: 0 auto;
   padding: 3rem 2.2rem 4rem;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--line-warm);
 }
 
 .features__grid {
@@ -1180,7 +1385,7 @@ select.input {
   max-width: 1180px;
   margin: 0 auto;
   padding: 3rem 2.2rem 4rem;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--line-warm);
 }
 
 .privacy__grid {
@@ -1191,7 +1396,7 @@ select.input {
 }
 
 .privacy__item {
-  background: rgba(255, 253, 245, 0.72);
+  background: var(--surface-warm);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   padding: 1.4rem 1.3rem;
@@ -1212,8 +1417,8 @@ select.input {
 
 /* ---- footer ---- */
 .site-footer {
-  border-top: 1px solid var(--line);
-  background: rgba(255, 253, 245, 0.72);
+  border-top: 1px solid var(--line-warm);
+  background: var(--paper-warm);
 }
 
 .site-footer__main {
@@ -1325,15 +1530,26 @@ select.input {
 .site-footer__bottom {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 1.15rem 2.2rem;
-  border-top: 1px solid var(--line);
+  padding: 1.4rem 2.2rem;
+  border-top: 1px solid var(--line-warm);
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 0.7rem;
+  gap: 1rem;
   color: var(--muted);
   font-size: 0.82rem;
+}
+
+.site-footer__copy {
+  white-space: nowrap;
+}
+
+/* the "Meet Soumyadeep" button sits centred on the base line */
+.site-footer__meet-btn {
+  min-height: 46px;
+  padding: 0.7rem 1.4rem;
+  font-size: 0.92rem;
 }
 
 .site-footer__bottom-links {
@@ -2086,17 +2302,12 @@ select.input {
 @media (max-width: 860px) {
   .hero {
     grid-template-columns: 1fr;
-    gap: 2.6rem;
-    padding: 3rem 1.4rem 3rem;
-    min-height: 0;
+    gap: 2.4rem;
+    padding: 1.8rem 1.4rem 2.6rem;
   }
 
-  .hero-visual {
-    justify-content: flex-start;
-  }
-
-  .chat-preview {
-    width: min(380px, 100%);
+    .chat-preview {
+    width: min(400px, 100%);
   }
 
   .chat {
@@ -2185,9 +2396,59 @@ select.input {
   }
 }
 
+@media (max-width: 560px) {
+  .site-footer__bottom {
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    padding: 1.4rem 1.1rem;
+    gap: 0.9rem;
+  }
+
+  .site-footer__bottom-links {
+    gap: 0.85rem;
+  }
+
+  .landing__nav-links {
+    gap: 0.45rem;
+  }
+
+  .landing__pill {
+    min-height: 40px;
+    padding: 0.58rem 1.05rem;
+    font-size: 0.84rem;
+  }
+
+  /* the hero already offers "I already have one" -> /login */
+  .landing__nav-links .landing__pill:first-child {
+    display: none;
+  }
+
+  .hero__swoosh {
+    width: min(72%, 300px);
+    height: 18px;
+  }
+
+  .hero__actions .btn--lg {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pv-bubble {
+    max-width: 84%;
+  }
+
+  /* `cover` on a tall phone band crops the artwork away almost entirely, so
+     scale it by width instead and keep the shapes visible at the top */
+  .landing__top::before {
+    background-size: 165% auto;
+    background-position: 62% top;
+  }
+}
+
 @media (max-width: 480px) {
   .hero__title {
-    font-size: 2.3rem;
+    font-size: clamp(3rem, 13vw, 3.6rem);
   }
 
   .hero {
@@ -2212,14 +2473,6 @@ select.input {
 
   .msg {
     max-width: 84%;
-  }
-
-  .stamp {
-    display: none;
-  }
-
-  .hero-deco {
-    display: none;
   }
 
   .dialog {
