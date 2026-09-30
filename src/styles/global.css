@@ -664,6 +664,11 @@ select.input {
   overflow-x: clip;
 }
 
+.landing__content {
+  position: relative;
+  min-width: 0;
+}
+
 .landing__top {
   position: relative;
   background: transparent;

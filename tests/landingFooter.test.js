@@ -7,12 +7,16 @@ const read = (p) => readFileSync(resolve(root, p), 'utf8')
 const landing = read('src/pages/Landing.jsx')
 const css = read('src/styles/global.css')
 
-describe('landing header is fixed/sticky', () => {
-  it('defines the nav as sticky at the top of the viewport', () => {
+describe('landing header remains sticky until the footer', () => {
+  it('sticks inside the content wrapper that ends before the footer', () => {
     const navRule = css.split('.landing__nav')[1].slice(0, 400)
     expect(navRule).toContain('position: sticky')
     expect(navRule).toContain('top: 0')
     expect(navRule).toContain('z-index')
+    expect(landing).toContain('className="landing__content"')
+    expect(landing).toMatch(
+      /<\/main>\s*<\/div>\s*<footer className="site-footer">/,
+    )
   })
 })
 
@@ -31,7 +35,9 @@ describe('footer redesign with social card', () => {
   })
 
   it('social links point at the real hushh accounts', () => {
-    expect(landing).toContain('href="https://www.linkedin.com/company/hushhconnect/"')
+    expect(landing).toContain(
+      'href="https://www.linkedin.com/company/hushhconnect/"',
+    )
     expect(landing).toContain('href="https://www.instagram.com/hushhconnect/"')
   })
 
@@ -102,7 +108,6 @@ describe('footer redesign with social card', () => {
   })
 
   it('About links point to sections that exist (working anchors)', () => {
-
     expect(landing).toContain('className="how" id="how-it-works"')
     expect(landing).toContain('className="features" id="quiet-by-design"')
     expect(landing).toContain('id="privacy"')
@@ -117,7 +122,9 @@ describe('footer redesign with social card', () => {
     const anchors = [...landing.matchAll(/href="#([a-z-]+)"/g)].map((m) => m[1])
     expect(anchors.length).toBeGreaterThan(0)
     for (const anchor of anchors) {
-      expect(landing, `#${anchor} has no target element`).toContain(`id="${anchor}"`)
+      expect(landing, `#${anchor} has no target element`).toContain(
+        `id="${anchor}"`,
+      )
     }
   })
 
@@ -127,7 +134,9 @@ describe('footer redesign with social card', () => {
   })
 
   it('footer layouts are responsive (collapse to 2 then 1 column)', () => {
-    expect(css).toMatch(/\.site-footer__main\s*\{[^}]*grid-template-columns:\s*1\.5fr 0\.8fr 0\.8fr 1\.8fr/m)
+    expect(css).toMatch(
+      /\.site-footer__main\s*\{[^}]*grid-template-columns:\s*1\.5fr 0\.8fr 0\.8fr 1\.8fr/m,
+    )
     expect(css).toContain('grid-template-columns: 1fr 1fr;')
     expect(css).toContain('grid-template-columns: 1fr;')
   })

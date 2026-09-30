@@ -39,8 +39,13 @@ describe('landing fonts are self-hosted (no third-party font requests)', () => {
 
 describe('the landing page alternates the supplied artwork direction', () => {
   it('keeps one continuous normal pattern through the hero and How it works', () => {
-    const page = css.slice(css.indexOf('.landing {'), css.indexOf('.landing__top {'))
-    expect(page).toContain("background-image: url('/landing-background-cut.png')")
+    const page = css.slice(
+      css.indexOf('.landing {'),
+      css.indexOf('.landing__top {'),
+    )
+    expect(page).toContain(
+      "background-image: url('/landing-background-cut.png')",
+    )
     expect(page).toContain('background-size: 100% auto')
     expect(page).toContain('background-position: center top')
     expect(page).toContain('background-repeat: repeat-y')
@@ -55,7 +60,9 @@ describe('the landing page alternates the supplied artwork direction', () => {
       css.indexOf('.landing__deco {'),
     )
     expect(reversed).toContain('.landing__reversed::before')
-    expect(reversed).toContain("background-image: url('/landing-background-lower.png')")
+    expect(reversed).toContain(
+      "background-image: url('/landing-background-lower.png')",
+    )
     expect(reversed).toContain('background-repeat: repeat-y')
     expect(reversed).toContain('transform: scaleX(-1)')
     expect(reversed).not.toContain('mask-image:')
@@ -80,9 +87,12 @@ describe('the landing page alternates the supplied artwork direction', () => {
   })
 
   it('app chrome keeps the cool hairlines (redesign stays landing-scoped)', () => {
-
-    expect(css).toMatch(/\.composer \{[\s\S]*?border-top: 1px solid var\(--line\)/)
-    expect(css).toMatch(/\.settings__logout \{[\s\S]*?border-top: 1px solid var\(--line\)/)
+    expect(css).toMatch(
+      /\.composer \{[\s\S]*?border-top: 1px solid var\(--line\)/,
+    )
+    expect(css).toMatch(
+      /\.settings__logout \{[\s\S]*?border-top: 1px solid var\(--line\)/,
+    )
   })
 })
 
@@ -94,9 +104,10 @@ describe('headline: hand-drawn display face with a swoosh', () => {
   })
 
   it('the headline stays dominant on phones (no tiny override)', () => {
-
     expect(css).not.toContain('font-size: 2.3rem')
-    expect(css).toMatch(/\.hero__title\s*\{\s*font-size: clamp\(3rem, 13vw, 3\.6rem\)/)
+    expect(css).toMatch(
+      /\.hero__title\s*\{\s*font-size: clamp\(3rem, 13vw, 3\.6rem\)/,
+    )
   })
 
   it('highlights quietly with a rounded gold block and orange rays', () => {
@@ -107,8 +118,12 @@ describe('headline: hand-drawn display face with a swoosh', () => {
     expect(css).toMatch(
       /\.hero__line--accent\s*\{[\s\S]*?color: var\(--ink\)[\s\S]*?background: #e0ad4f[\s\S]*?border-radius: 0\.36em/,
     )
-    expect(css).toMatch(/\.hero__rays i\s*\{[\s\S]*?background: var\(--orange\)/)
-    expect(css).toMatch(/\.hero__title\s*\{[\s\S]*?margin-left: clamp\(0\.75rem, 2vw, 2rem\)/)
+    expect(css).toMatch(
+      /\.hero__rays i\s*\{[\s\S]*?background: var\(--orange\)/,
+    )
+    expect(css).toMatch(
+      /\.hero__title\s*\{[\s\S]*?margin-left: clamp\(0\.75rem, 2vw, 2rem\)/,
+    )
   })
 })
 
@@ -130,12 +145,18 @@ describe('hero chat card mirrors the REAL chat screen', () => {
 
   it('bubble geometry matches .msg / .msg--own / .msg--other', () => {
     expect(css).toMatch(/\.pv-bubble\s*\{[\s\S]*?border-radius: 15px/)
-    expect(css).toMatch(/\.pv-bubble--in\s*\{[\s\S]*?border-bottom-left-radius: 5px/)
-    expect(css).toMatch(/\.pv-bubble--out\s*\{[\s\S]*?border-bottom-right-radius: 5px/)
+    expect(css).toMatch(
+      /\.pv-bubble--in\s*\{[\s\S]*?border-bottom-left-radius: 5px/,
+    )
+    expect(css).toMatch(
+      /\.pv-bubble--out\s*\{[\s\S]*?border-bottom-right-radius: 5px/,
+    )
   })
 
   it('the own-message timestamp uses --yellow-soft like the real chat', () => {
-    expect(css).toMatch(/\.pv-bubble--out time\s*\{[\s\S]*?var\(--yellow-soft\)/)
+    expect(css).toMatch(
+      /\.pv-bubble--out time\s*\{[\s\S]*?var\(--yellow-soft\)/,
+    )
   })
 })
 
@@ -190,13 +211,17 @@ describe('nav remains usable on phones', () => {
     expect(landing).toMatch(/to="\/login"[\s\S]{0,80}I already have one/)
   })
 
-  it('the sticky nav is pinned for the full landing page', () => {
-    expect(css).toMatch(/\.landing__nav\s*\{[\s\S]*?position: sticky;[\s\S]*?top: 0;/)
+  it('keeps the nav sticky through page content and releases it before the footer', () => {
+    expect(css).toMatch(
+      /\.landing__nav\s*\{[\s\S]*?position: sticky;[\s\S]*?top: 0;/,
+    )
     expect(css).toContain('scroll-margin-top: 120px')
-
-    const navIndex = landing.indexOf('<header className="landing__nav">')
-    const heroContainerIndex = landing.indexOf('<div className="landing__top">')
-    expect(navIndex).toBeGreaterThan(-1)
-    expect(navIndex).toBeLessThan(heroContainerIndex)
+    expect(css).toMatch(/\.landing__content\s*\{[\s\S]*?position: relative/)
+    expect(landing).toMatch(
+      /<div className="landing__content">\s*<header className="landing__nav">/,
+    )
+    expect(landing).toMatch(
+      /<\/main>\s*<\/div>\s*<footer className="site-footer">/,
+    )
   })
 })
