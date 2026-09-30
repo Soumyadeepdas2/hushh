@@ -17,23 +17,6 @@ import CaptchaWidget from '../components/CaptchaWidget'
 import { isCaptchaEnabled, resetCaptcha } from '../lib/captcha'
 import { supabase } from '../lib/supabase'
 
-// ---------------------------------------------------------------------------
-// Registration.
-//
-// Fields: display name, Chat ID, password, confirm password, security
-// question, security answer. A Recovery ID is generated automatically — the
-// user never chooses it and it is shown exactly once, after registration.
-//
-// Security properties:
-//   - the login password goes straight to Supabase Auth; hushh never stores
-//     or hashes it
-//   - the security answer is normalized and stored only as a PBKDF2 hash
-//     with a unique random salt
-//   - the Recovery ID is stored only as a SHA-256 hash
-//   - the plaintext Recovery ID lives in component state only, is shown once,
-//     and is dropped after acknowledgement
-// ---------------------------------------------------------------------------
-
 const initialForm = {
   displayName: '',
   chatId: '',
@@ -44,21 +27,17 @@ const initialForm = {
 }
 
 export default function Register() {
-  // The one-time Recovery ID dialog is rendered by RecoveryProvider at the
-  // App level so the post-signup /chat redirect cannot destroy it (BUG 2).
+
   const { show: showRecovery } = useRecovery()
-  // refreshProfile re-fetches the profile AFTER the insert (see submit below)
-  // so the auth listener's earlier, pre-insert fetch is superseded — this
-  // prevents the "profile could not be loaded" screen behind the dialog.
+
   const { refreshProfile } = useAuth()
 
   const [form, setForm] = useState(initialForm)
   const [errors, setErrors] = useState({})
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
-  const [availability, setAvailability] = useState(null) // true | false | null
-  // CAPTCHA (bot protection) — only active when VITE_CAPTCHA_SITE_KEY is set.
-  // The shared CaptchaWidget mounts the hCaptcha widget and forwards tokens.
+  const [availability, setAvailability] = useState(null)
+
   const [captchaToken, setCaptchaToken] = useState(null)
   const [captchaError, setCaptchaError] = useState(false)
 
@@ -73,7 +52,6 @@ export default function Register() {
     setAvailability(null)
   }
 
-  // Debounced availability check — UX only. The database is authoritative.
   useEffect(() => {
     const normalized = normalizeChatId(form.chatId)
     if (!isValidChatId(normalized)) {
@@ -99,8 +77,6 @@ export default function Register() {
       setErrors(validationErrors)
       if (Object.keys(validationErrors).length > 0) return
 
-      // CAPTCHA gate: when a site key is configured, a completed widget token
-      // is required before creating the account.
       if (isCaptchaEnabled() && !captchaToken) {
         setCaptchaError(true)
         return
@@ -109,22 +85,17 @@ export default function Register() {
       setBusy(true)
       setError(null)
 
-      // The plaintext Recovery ID exists only in this local scope while we
-      // derive its hash. It is never sent anywhere.
       const recoveryId = generateRecoveryId()
       const chatIdNormalized = normalizeChatId(form.chatId)
 
       try {
-        // 1. Create the Supabase Auth user (email = deterministic internal
-        //    mapping of the Chat ID; password handled by Supabase Auth).
-        //    The CAPTCHA token is forwarded for server-side verification.
+
         const { user } = await signUpWithChatId({
           chatId: chatIdNormalized,
           password: form.password,
           captchaToken,
         })
 
-        // 2. Create the public profile row (RLS: only own row).
         await createProfile({
           authUserId: user.id,
           displayName: form.displayName.trim(),
@@ -132,13 +103,8 @@ export default function Register() {
           chatIdNormalized,
         })
 
-        // 2b. RACE FIX: the auth listener fired SIGNED_IN during signUp() and
-        //     fetched the profile BEFORE the insert above committed, so it may
-        //     have stored `profile = null`. Re-fetch now, after the commit, so
-        //     the chat screen behind the Recovery dialog has the real profile.
         if (user?.id) await refreshProfile(user.id)
 
-        // 3. Derive and store ONLY the hashes in user_secrets.
         const answerSalt = await generateSaltHex()
         const [answerHash, recoveryHash] = await Promise.all([
           pbkdf2Hex(normalizeSecurityAnswer(form.securityAnswer), answerSalt),
@@ -152,17 +118,13 @@ export default function Register() {
           securityAnswerSalt: answerSalt,
         })
 
-        // 4. Show the one-time recovery dialog (rendered by RecoveryProvider
-        //    at App level — survives the GuestOnly /chat redirect).
         showRecovery(chatIdNormalized, recoveryId)
       } catch (err) {
         setError(err.message)
-        // CAPTCHA tokens are single-use: reset the widget and require a fresh
-        // one on the next attempt.
+
         setCaptchaToken(null)
         resetCaptcha()
-        // If the Auth user was created but a later step failed, drop the local
-        // session so the half-created account cannot be used from this browser.
+
         if (err.message !== 'That Chat ID is already taken.') {
           await supabase.auth.signOut()
         }

@@ -1,9 +1,4 @@
-// ---------------------------------------------------------------------------
-// Auth context: Supabase Auth session + the caller's own profile.
-//
-// Listens for auth state changes (onAuthStateChange). The chat route is
-// protected by ProtectedRoute; logged-out users are redirected to /login.
-// ---------------------------------------------------------------------------
+
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
@@ -20,7 +15,7 @@ export function AuthProvider({ children }) {
       setProfile(null)
       return
     }
-    // RLS allows reading only your own profile row.
+
     const { data } = await supabase
       .from('profiles')
       .select('id, display_name, chat_id, avatar_id')

@@ -2,11 +2,6 @@ import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// ---------------------------------------------------------------------------
-// UI wiring pins: every hushh logo links home, the chat screen guards a
-// missing conversation id, and the favicon is visible in light & dark mode.
-// ---------------------------------------------------------------------------
-
 const root = process.cwd()
 const read = (p) => readFileSync(resolve(root, p), 'utf8')
 const has = (p) => existsSync(resolve(root, p))
@@ -15,12 +10,12 @@ describe('every hushh logo links to the home page', () => {
   it('auth pages wrap the top-bar logo in a Link to "/"', () => {
     for (const page of ['Login.jsx', 'Register.jsx', 'ForgotPassword.jsx']) {
       const source = read(`src/pages/${page}`)
-      // logo sits in the shared top bar now (small size), still a home link
+
       expect(source, page).toContain(
         '<Link to="/" className="topbar__brand auth-head__logo" aria-label="hushh home">',
       )
       expect(source, page).toContain('<Logo size="sm" />')
-      // the card body is wrapped for the centered layout
+
       expect(source, page).toContain('<div className="auth-wrap__body">')
     }
   })
@@ -69,7 +64,7 @@ describe('favicon is visible in light & dark mode', () => {
 
   it('the favicon file exists next to the unchanged logo', () => {
     expect(has('public/favicon.png')).toBe(true)
-    expect(has('public/logo.png')).toBe(true) // logo asset preserved
+    expect(has('public/logo.png')).toBe(true)
   })
 })
 
@@ -78,15 +73,15 @@ describe('shared top-bar header system', () => {
     const css = read('src/styles/global.css')
     expect(css).toContain('.topbar {')
     expect(css).toContain('.topbar__actions')
-    // the brand-yellow accent strip is the shared header signature
+
     expect(css).toMatch(/inset 0 3px 0 0 var\(--yellow\)/)
-    // all headers share ONE tall height so the logo is never clipped
+
     expect(css).toContain('--topbar-h: 112px;')
     expect(css).toMatch(/\.topbar \{[\s\S]*?height: var\(--topbar-h\)/)
     expect(css).toMatch(/\.landing__nav \{[\s\S]*?height: var\(--topbar-h\)/)
     expect(css).toMatch(/\.chat-side__header \{[\s\S]*?height: var\(--topbar-h\)/)
     expect(css).toMatch(/\.chat-main__header \{[\s\S]*?height: var\(--topbar-h\)/)
-    // the top-bar logo is big yet sized to fit inside the header (never cut)
+
     expect(css).toMatch(/\.topbar__brand \.logo-img \{[\s\S]*?width: 200px/)
   })
 
@@ -107,28 +102,26 @@ describe('shared top-bar header system', () => {
 describe('unread badge clears on open + hover bin removed (bug fixes)', () => {
   it('Chat passes onDelete only to the message bubble, not the conversation list', () => {
     const chat = read('src/pages/Chat.jsx')
-    // the ConversationList element has no onDelete prop (hover bin removed)
+
     expect(chat).toContain(
       '<ConversationList\n            conversations={conversations}\n            activeId={activeId}\n            onOpen={openConversation}\n          />',
     )
-    // message bubbles get the delete handler (right-click / double-tap) which
-    // opens the in-app confirm modal
+
     expect(chat).toMatch(/<MessageBubble[\s\S]*?onDelete=\{requestDeleteMessage\}/)
   })
 
   it('MessageBubble deletes via gestures, not a visible button', () => {
     const source = read('src/components/MessageBubble.jsx')
-    // desktop right-click menu
+
     expect(source).toContain('onContextMenu={canDelete ? handleContextMenu : undefined}')
-    // touch long-press (phone) — no double-tap logic anymore
+
     expect(source).toContain('onTouchStart={canDelete ? handleTouchStart : undefined}')
     expect(source).toContain('onTouchMove={canDelete ? handleTouchMove : undefined}')
     expect(source).toContain('onTouchEnd={canDelete ? handleTouchEnd : undefined}')
     expect(source).not.toContain('isDoubleTap')
     expect(source).toContain('LONG_PRESS_MS')
     expect(source).toContain('Delete message')
-    // no hover trash button anymore (msg__deleted-text is a different class —
-    // match the exact standalone delete button class, not the substring)
+
     expect(source).not.toMatch(/className="msg__delete"/)
     const css = read('src/styles/global.css')
     expect(css).not.toMatch(/\.msg__delete(?![a-z-])/)
@@ -143,11 +136,11 @@ describe('unread badge clears on open + hover bin removed (bug fixes)', () => {
 
   it('unread badge reads from the conversation object and clears in openConversation', () => {
     const chat = read('src/pages/Chat.jsx')
-    // single source of truth: badge reads conversation.unread
+
     expect(chat).toContain('unread,')
-    // the OPEN conversation always shows 0 (you're reading it)
+
     expect(chat).toContain('conversation.id === activeIdRef.current ? 0 : unreadMap[conversation.id] || 0')
-    // opening a chat zeroes the badge on the conversation object
+
     expect(chat).toMatch(/setConversations\([\s\S]*?c\.id === conversationId \? \{ \.\.\.c, unread: 0 \}/)
   })
 

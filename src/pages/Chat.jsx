@@ -25,23 +25,6 @@ import { deleteMessage, fetchMessages, sendMessage } from '../services/messages'
 import { getProfileBrief, setAvatar } from '../services/profiles'
 import { Button } from '../components/ui'
 
-// ---------------------------------------------------------------------------
-// Chat — the protected app screen.
-//
-// Layout: sidebar (profile, search, conversation list) + message pane.
-// Responsive: single-pane mobile switching between list and conversation.
-//
-// Realtime: messages arrive via Supabase Realtime (postgres_changes), which
-// is RLS-enforced — a client only receives events for conversations it can
-// SELECT. No polling.
-//
-// Features (A/B/C/D):
-//   A — unread message count per conversation (read cursor server-side)
-//   B — delete a chat "for me" (via the delete_conversation_for_me RPC)
-//   C — settings menu (avatar picker + log out) replaces the Log out button
-//   D — fixed avatar gallery (profiles.avatar_id)
-// ---------------------------------------------------------------------------
-
 const SORT = (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
 
 function upsertMessage(list, incoming) {
@@ -63,13 +46,13 @@ export default function Chat() {
   const [messages, setMessages] = useState([])
   const [peer, setPeer] = useState(null)
   const [busy, setBusy] = useState(true)
-  const [mobileView, setMobileView] = useState('list') // 'list' | 'chat'
+  const [mobileView, setMobileView] = useState('list')
   const [toast, setToast] = useState(null)
-  // in-app confirmation modal state (replaces the native browser confirm)
-  const [confirmState, setConfirmState] = useState(null) // { kind, conversationId, message }
+
+  const [confirmState, setConfirmState] = useState(null)
   const messagesEndRef = useRef(null)
   const messagesContainerRef = useRef(null)
-  // latest activeId available inside the realtime callback (ref stays in sync)
+
   const activeIdRef = useRef(activeId)
 
   useEffect(() => {
@@ -81,11 +64,6 @@ export default function Chat() {
     window.setTimeout(() => setToast(null), 4000)
   }, [])
 
-  // ---- mobile keyboard fix --------------------------------------------------
-  // On phones the on-screen keyboard shrinks the VISIBLE viewport but not the
-  // layout viewport, so a 100vh container hides its bottom bar behind the
-  // keyboard. Track window.visualViewport.height and size the chat to it
-  // (works on iOS too, where dvh alone can lag).
   useEffect(() => {
     if (typeof window === 'undefined' || !window.visualViewport) return undefined
     const apply = () => {
@@ -103,7 +81,6 @@ export default function Chat() {
     }
   }, [])
 
-  // ---- profile race safety net ---------------------------------------------
   useEffect(() => {
     if (!session?.user || profile) return undefined
     let attempts = 0
@@ -121,8 +98,6 @@ export default function Chat() {
   const handleRetryProfile = async () => {
     if (session?.user) await refreshProfile(session.user.id)
   }
-
-  // ---- conversation list ---------------------------------------------------
 
   const loadConversations = useCallback(async () => {
     try {
@@ -143,9 +118,7 @@ export default function Chat() {
           )
           const other = others.length ? briefMap.get(others[0].user_id) || null : null
           const latest = lastMessages.get(conversation.id)
-          // while a conversation is OPEN, its badge must stay 0 (you're
-          // reading it) — prevents a phantom count when the server-side
-          // read cursor hasn't caught up yet
+
           const unread =
             conversation.id === activeIdRef.current ? 0 : unreadMap[conversation.id] || 0
           return {
@@ -177,9 +150,6 @@ export default function Chat() {
     setBusy(false)
   }, [session, profile, loadConversations])
 
-  // Realtime: refresh the sidebar whenever anything changes in a conversation
-  // the user is part of. Debounced (trailing ~250ms) so a burst of events
-  // doesn't trigger many full re-fetches — keeps phones smooth.
   const reloadTimerRef = useRef(null)
   useRealtimeConversations(() => {
     if (reloadTimerRef.current) clearTimeout(reloadTimerRef.current)
@@ -189,8 +159,6 @@ export default function Chat() {
     }, 250)
   })
 
-  // ---- opening a conversation ----------------------------------------------
-
   const openConversation = useCallback(
     async (conversationId) => {
       if (!conversationId) return
@@ -198,8 +166,7 @@ export default function Chat() {
       setMobileView('chat')
       setMessages([])
       setPeer(null)
-      // clear the unread badge + advance the read cursor (unread lives on the
-      // conversation object — the single source the badge reads from)
+
       setConversations((prev) =>
         prev.map((c) => (c.id === conversationId ? { ...c, unread: 0 } : c)),
       )
@@ -222,7 +189,6 @@ export default function Chat() {
     [profile?.id, showToast],
   )
 
-  // Realtime: append/update messages for the active conversation.
   const handleMessageEvent = useCallback(
     (payload) => {
       if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
@@ -247,10 +213,7 @@ export default function Chat() {
               return tb - ta
             }),
         )
-        // incoming message from someone else:
-        //   • chat NOT open -> bump the unread badge
-        //   • chat IS open   -> keep badge at 0 AND advance the read cursor so
-        //     the server-side count agrees (no phantom count on next reload)
+
         if (payload.eventType === 'INSERT' && payload.new.sender_id !== profile?.id) {
           if (convId === activeIdRef.current) {
             markConversationRead(convId).catch(() => {})
@@ -265,8 +228,6 @@ export default function Chat() {
     [profile?.id],
   )
   useRealtimeMessages(activeId, handleMessageEvent)
-
-  // ---- actions -------------------------------------------------------------
 
   const handleSend = async (body) => {
     if (!activeId || !profile) return
@@ -293,8 +254,6 @@ export default function Chat() {
       showToast('Could not delete that message.')
     }
   }
-
-  // ---- in-app confirmation modal -------------------------------------------
 
   const requestDeleteMessage = (message) => {
     if (!message || message.deleted_at || message.sender_id !== profile?.id) return
@@ -363,7 +322,7 @@ export default function Chat() {
     try {
       await signOut()
     } catch {
-      // session is cleared locally regardless
+
     }
     navigate('/login', { replace: true })
   }
@@ -372,8 +331,6 @@ export default function Chat() {
     setActiveId(null)
     setMobileView('list')
   }
-
-  // ---- scroll to bottom on new messages ------------------------------------
 
   useEffect(() => {
     const container = messagesContainerRef.current
@@ -410,7 +367,7 @@ export default function Chat() {
 
   return (
     <div className={`chat ${viewClass}`}>
-      {/* ---------------- sidebar ---------------- */}
+
       <aside className="chat-side">
         <div className="chat-side__header">
           <Link to="/" className="chat-side__logo" aria-label="hushh home">
@@ -444,7 +401,6 @@ export default function Chat() {
         </nav>
       </aside>
 
-      {/* ---------------- message pane ---------------- */}
       <main className="chat-main">
         {!activeId ? (
           <div className="chat-empty">

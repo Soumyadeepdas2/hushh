@@ -7,17 +7,6 @@ import { lookupRecoveryQuestion, resetPasswordWithRecovery } from '../services/r
 import { validatePassword } from '../utils/password'
 import { validateRecoveryInput } from '../utils/recovery'
 
-// ---------------------------------------------------------------------------
-// Forgot Password.
-//
-// Flow:  Recovery ID  ->  associated security question  ->  answer  ->
-//        new password  ->  done.
-//
-// The Chat ID is NEVER sufficient to initiate recovery. All verification and
-// the actual password change happen inside the recover-password Edge
-// Function (rate-limited, service-role based admin password update).
-// ---------------------------------------------------------------------------
-
 const STEPS = { recovery: 'recovery', answer: 'answer', password: 'password', done: 'done' }
 
 export default function ForgotPassword() {

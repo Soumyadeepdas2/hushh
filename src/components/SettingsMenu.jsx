@@ -2,15 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { AVATAR_COUNT, avatarPath } from '../utils/avatar'
 import Avatar from './Avatar'
 
-// ---------------------------------------------------------------------------
-// Settings menu (replaces the Log out button in the chat sidebar header).
-//   • shows the current profile (avatar + display name + Chat ID)
-//   • "Choose avatar" — grid of the 12 bundled avatars (tap to select)
-//   • Log out
-// Closes on outside click / Escape. Selection calls back to the parent which
-// persists via the set_avatar RPC and refreshes the profile.
-// ---------------------------------------------------------------------------
-
 export default function SettingsMenu({ profile, onSelectAvatar, onLogout }) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef(null)

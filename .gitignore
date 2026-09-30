@@ -1,27 +1,24 @@
-# dependencies
+
 node_modules/
 
-# build output
 dist/
 dist-ssr/
 
-# environment — never commit your real .env
 .env
 .env.local
 .env.*.local
 
-# logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# editor / OS
 .vscode/*
 !.vscode/extensions.json
 .idea/
 .DS_Store
 
-# supabase local tooling (not required to run hushh)
 supabase/.temp
 supabase/.branches
+
+hushh.md

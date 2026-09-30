@@ -1,18 +1,6 @@
 import { Link } from 'react-router-dom'
 import Logo from '../components/Logo'
 
-// ---------------------------------------------------------------------------
-// Landing — warm, playful, product-feeling.
-//
-// Nav + hero were redesigned: the artwork background carries the decoration
-// (orange shapes), the headline is hand-drawn (Shantell Sans) with a hand-drawn
-// swoosh, and the hero visual is a faithful miniature of the REAL chat screen
-// (pill bubbles, navy Send button, no read receipts).
-//
-// The sections below the hero (how it works / quiet by design / privacy) and
-// the footer are unchanged.
-// ---------------------------------------------------------------------------
-
 function ChatIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -74,8 +62,6 @@ function SparkIcon() {
   )
 }
 
-/* ---- hero-only icons (small, solid strokes to match the hand-drawn feel) --- */
-
 function PillLockIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -132,44 +118,25 @@ function ShieldIcon() {
   )
 }
 
-function Swoosh() {
-  return (
-    <svg
-      viewBox="0 0 420 26"
-      fill="none"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path
-        d="M6 17C58 5 128 3 200 6c60 2.5 128 5 214 13"
-        stroke="var(--yellow)"
-        strokeWidth="7"
-        strokeLinecap="round"
-      />
-    </svg>
-  )
-}
-
 export default function Landing() {
   return (
     <div className="landing">
-      {/* ---------------- nav + hero (artwork background) ---------------- */}
-      <div className="landing__top">
-        <header className="landing__nav">
-          <Link to="/" className="landing__brand" aria-label="hushh home">
-            <Logo size="sm" />
-          </Link>
-          <nav className="landing__nav-links">
-            <Link to="/login" className="landing__pill">
-              Sign in
-            </Link>
-            <Link to="/register" className="landing__pill landing__pill--yellow">
-              Create your hushh
-            </Link>
-          </nav>
-        </header>
 
+      <header className="landing__nav">
+        <Link to="/" className="landing__brand" aria-label="hushh home">
+          <Logo size="sm" />
+        </Link>
+        <nav className="landing__nav-links">
+          <Link to="/login" className="landing__pill">
+            Sign in
+          </Link>
+          <Link to="/register" className="landing__pill landing__pill--yellow">
+            Create your hushh
+          </Link>
+        </nav>
+      </header>
+
+      <div className="landing__top">
         <section className="hero">
           <div className="hero__text">
             <p className="hero__kicker">
@@ -181,9 +148,11 @@ export default function Landing() {
               <span className="hero__line">Say hello</span>
               <span className="hero__line hero__line--accent">
                 quietly<span className="hero__dot">.</span>
-              </span>
-              <span className="hero__swoosh" aria-hidden="true">
-                <Swoosh />
+                <span className="hero__rays" aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
+                </span>
               </span>
             </h1>
 
@@ -251,7 +220,7 @@ export default function Landing() {
       </div>
 
       <main className="landing__main">
-        {/* decorative shapes — purely visual, mirrors the artwork's orange */}
+
         <div className="landing__deco" aria-hidden="true">
           <span />
           <span />
@@ -259,7 +228,6 @@ export default function Landing() {
           <span />
         </div>
 
-        {/* ---------------- how it works ---------------- */}
         <section className="how" id="how-it-works">
           <div className="how__head">
             <h2 className="how__title">How it works</h2>
@@ -294,8 +262,9 @@ export default function Landing() {
           </ol>
         </section>
 
-        {/* ---------------- quiet by design ---------------- */}
-        <section className="features" id="quiet-by-design">
+        <div className="landing__reversed">
+
+          <section className="features" id="quiet-by-design">
           <div className="how__head">
             <h2 className="features__title">Quiet by design</h2>
             <p className="features__kicker">Privacy, built in</p>
@@ -344,7 +313,6 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* ---------------- privacy ---------------- */}
         <section className="privacy" id="privacy">
           <div className="how__head">
             <h2 className="features__title">Privacy</h2>
@@ -373,10 +341,10 @@ export default function Landing() {
               </p>
             </div>
           </div>
-        </section>
+          </section>
+        </div>
       </main>
 
-      {/* ---------------- footer ---------------- */}
       <footer className="site-footer">
         <div className="site-footer__main">
           <div className="site-footer__brand">
@@ -422,32 +390,45 @@ export default function Landing() {
           <div className="site-footer__social">
             <h4>Say hello elsewhere</h4>
             <p>Quiet updates, occasional thoughts.</p>
-            <div className="site-footer__social-icons">
+            <div className="site-footer__social-actions">
+              <div className="site-footer__social-icons">
+                <a
+                  className="social-btn"
+                  href="https://www.linkedin.com/company/hushhconnect/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="hushh on LinkedIn"
+                  title="hushh on LinkedIn"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.36V9h3.41v1.56h.05a3.74 3.74 0 0 1 3.37-1.85c3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zm1.78 13.02H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z" />
+                  </svg>
+                </a>
+                <a
+                  className="social-btn"
+                  href="https://www.instagram.com/hushhconnect/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="hushh on Instagram"
+                  title="hushh on Instagram"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                    <rect x="3" y="3" width="18" height="18" rx="5" />
+                    <circle cx="12" cy="12" r="4" />
+                    <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none" />
+                  </svg>
+                </a>
+              </div>
+
               <a
-                className="social-btn"
-                href="https://www.linkedin.com/company/hushhconnect/"
+                className="btn btn--ghost site-footer__meet-btn"
+                href="https://www.soumyadeep.space/"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="hushh on LinkedIn"
-                title="hushh on LinkedIn"
+                title="Soumyadeep Das — Developer, Vadodara"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.36V9h3.41v1.56h.05a3.74 3.74 0 0 1 3.37-1.85c3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zm1.78 13.02H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z" />
-                </svg>
-              </a>
-              <a
-                className="social-btn"
-                href="https://www.instagram.com/hushhconnect/"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="hushh on Instagram"
-                title="hushh on Instagram"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-                  <rect x="3" y="3" width="18" height="18" rx="5" />
-                  <circle cx="12" cy="12" r="4" />
-                  <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none" />
-                </svg>
+                Meet Soumyadeep
+                <ArrowIcon />
               </a>
             </div>
           </div>
@@ -455,19 +436,10 @@ export default function Landing() {
 
         <div className="site-footer__bottom">
           <span className="site-footer__copy">
-            &copy; {new Date().getFullYear()} hushh
+            <span>&copy; {new Date().getFullYear()} hushh</span>
+            <span className="site-footer__copy-sep" aria-hidden="true">·</span>
+            <span>Say hello quietly</span>
           </span>
-
-          <a
-            className="btn btn--accent-pill site-footer__meet-btn"
-            href="https://www.soumyadeep.space/"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Soumyadeep Das — Developer, Vadodara"
-          >
-            Meet Soumyadeep
-            <ArrowIcon />
-          </a>
 
           <div className="site-footer__bottom-links">
             <a href="#privacy">Privacy</a>

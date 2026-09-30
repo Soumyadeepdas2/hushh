@@ -1,16 +1,5 @@
 import { useEffect, useRef } from 'react'
 
-// ---------------------------------------------------------------------------
-// In-app confirmation modal — replaces window.confirm() for destructive
-// actions (delete chat, delete message). Matches the Hushh design system.
-// Closes on Cancel / Escape / outside click.
-//
-// NOTE: outside-click is IGNORED for a short window after opening. On touch
-// devices the browser fires a synthesized mousedown right after touchend,
-// which would land on the just-rendered backdrop and close the dialog the
-// instant it appears. The guard prevents that flash-close.
-// ---------------------------------------------------------------------------
-
 const OUTSIDE_IGNORE_MS = 350
 
 export default function ConfirmDialog({
@@ -27,7 +16,6 @@ export default function ConfirmDialog({
   const confirmRef = useRef(null)
   const openAtRef = useRef(0)
 
-  // focus the confirm button on open; close on Escape; guard outside-clicks
   useEffect(() => {
     if (!open) return undefined
     openAtRef.current = Date.now()
@@ -43,7 +31,7 @@ export default function ConfirmDialog({
 
   const handleBackdropMouseDown = (e) => {
     if (e.target !== e.currentTarget) return
-    // ignore clicks that arrive within the guard window after opening
+
     if (Date.now() - openAtRef.current < OUTSIDE_IGNORE_MS) return
     onCancel()
   }

@@ -1,19 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { isCaptchaEnabled, loadCaptchaScript, renderCaptcha } from '../lib/captcha'
 
-// ---------------------------------------------------------------------------
-// Reusable hCaptcha widget — used by BOTH the Register and Login forms.
-//
-// • mounts the widget exactly once into an element ref (no id collisions)
-// • forwards the verification token (or null on expiry/failure) to `onToken`
-// • shows the standard "Please complete the CAPTCHA" message when `error` is
-//   true (parent sets it when the user submits without a token) or when the
-//   hCaptcha script fails to load
-//
-// Resetting after a failed submit is the parent's job via resetCaptcha() from
-// lib/captcha, so a fresh token is required on the next attempt.
-// ---------------------------------------------------------------------------
-
 export default function CaptchaWidget({ onToken, error }) {
   const mountRef = useRef(null)
   const renderedRef = useRef(false)

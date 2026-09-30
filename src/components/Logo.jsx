@@ -1,10 +1,5 @@
 import { useState } from 'react'
 
-// ---------------------------------------------------------------------------
-// hushh logo — the brand wordmark asset (public/logo.png).
-// Falls back to the script-font wordmark if the image ever fails to load.
-// ---------------------------------------------------------------------------
-
 const SIZES = {
   sm: 'logo--sm',
   md: 'logo--md',

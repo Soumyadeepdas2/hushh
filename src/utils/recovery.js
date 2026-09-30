@@ -1,10 +1,4 @@
-// ---------------------------------------------------------------------------
-// Recovery input validation (Forgot Password flow).
-//
-// Password recovery requires BOTH the Recovery ID AND the security answer.
-// The Chat ID is never sufficient to initiate recovery, and recovery
-// information is never exposed through Chat ID search.
-// ---------------------------------------------------------------------------
+
 
 import { isValidRecoveryId } from './recoveryId'
 import { validatePassword } from './password'

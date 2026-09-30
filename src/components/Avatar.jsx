@@ -1,10 +1,5 @@
 import { avatarPath } from '../utils/avatar'
 
-// ---------------------------------------------------------------------------
-// Avatar — renders the user's chosen gallery avatar, falling back to
-// initials (current behavior) when none is set.
-// ---------------------------------------------------------------------------
-
 function initials(name) {
   if (!name) return '?'
   return name

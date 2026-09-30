@@ -1,18 +1,7 @@
-/* ===========================================================================
-   hushh — design system (v2)
-   ---------------------------------------------------------------------------
-   Brand: quiet · private · minimal · confident · modern · slightly playful
-   Palette: warm cream base, deep navy ink, saturated brand yellow.
 
-   Yellow is used with intent — not washed out: primary CTAs, active states,
-   focus rings, small decorative shapes, brand moments. The rest stays quiet.
-
-   Avoided: gradients, glassmorphism, generic SaaS purple/blue, oversized
-   hero sections, excessive rounded cards and animation.
-   =========================================================================== */
 
 :root {
-  /* palette */
+
   --cream: #f5eddb;
   --cream-deep: #ece0c6;
   --paper: #fffdf5;
@@ -32,7 +21,6 @@
   --warn-line: #e6d4ab;
   --warn-ink: #7a5b1e;
 
-  /* type */
   --font-body:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
     sans-serif;
@@ -42,7 +30,6 @@
     'Comic Sans MS', cursive;
   --font-mono: 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace;
 
-  /* misc */
   --radius: 10px;
   --radius-lg: 16px;
   --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.7) inset,
@@ -50,17 +37,10 @@
   --shadow-lift: 0 22px 44px -20px rgba(22, 35, 46, 0.45);
   --shadow-dialog: 0 28px 70px -24px rgba(22, 35, 46, 0.5);
   --focus-ring: 0 0 0 3px rgba(246, 181, 0, 0.3);
-  /* shared header height — tall enough to never clip the hushh logo */
+
   --topbar-h: 112px;
 }
 
-/* ---------- fonts -------------------------------------------------------
-   Self-hosted (no third-party CDN requests from a privacy product).
-   Shantell Sans  -> landing headline only (hand-drawn marker feel)
-   Nunito         -> landing body / labels / hero chat card
-   Both are latin-subset variable woff2, wght 300-800 / 400-800.
-   Fetch/refresh with:  python3 scripts/fetch-landing-fonts.py
-   ------------------------------------------------------------------------ */
 @font-face {
   font-family: 'Shantell Sans';
   font-style: normal;
@@ -77,7 +57,6 @@
   src: url('/fonts/nunito.woff2') format('woff2');
 }
 
-/* ---------- reset ---------- */
 *,
 *::before,
 *::after {
@@ -88,7 +67,6 @@ html {
   scroll-behavior: smooth;
 }
 
-/* anchored sections scroll to sit below the sticky landing nav */
 section[id],
 .how,
 .features,
@@ -134,7 +112,6 @@ button {
   background: rgba(246, 181, 0, 0.4);
 }
 
-/* ---------- logo ---------- */
 .logo {
   font-family: var(--font-script);
   font-weight: 700;
@@ -151,7 +128,7 @@ button {
 .logo-img {
   display: block;
   height: auto;
-  width: 150px; /* md default */
+  width: 150px;
 }
 
 .logo-img--sm {
@@ -159,14 +136,13 @@ button {
 }
 
 .logo-img--md {
-  width: 150px; /* auth pages — appropriately sized, not huge */
+  width: 150px;
 }
 
 .logo-img--lg {
   width: 172px;
 }
 
-/* ---------- buttons ---------- */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -207,7 +183,6 @@ button {
   transform: none;
 }
 
-/* primary marketing CTA — brand yellow, navy text */
 .btn--accent {
   background: var(--yellow);
   border-color: var(--yellow);
@@ -220,7 +195,6 @@ button {
   color: var(--ink);
 }
 
-/* quiet action — deep navy, cream text */
 .btn--primary {
   background: var(--ink);
   border-color: var(--ink);
@@ -233,7 +207,6 @@ button {
   color: var(--cream);
 }
 
-/* secondary — outline */
 .btn--ghost {
   border-color: var(--line-strong);
   color: var(--ink);
@@ -245,7 +218,6 @@ button {
   background: rgba(255, 253, 245, 0.85);
 }
 
-/* destructive confirm button (delete chat / delete message) */
 .btn--danger {
   background: var(--danger);
   border-color: var(--danger);
@@ -286,7 +258,6 @@ button {
   display: none;
 }
 
-/* ---------- fields ---------- */
 .field {
   margin-bottom: 1.05rem;
 }
@@ -368,7 +339,6 @@ select.input {
   border-radius: var(--radius) 0 0 var(--radius);
 }
 
-/* input joins the @ prefix on the left and stays flexible next to the button */
 .input-row .input {
   flex: 1;
   min-width: 0;
@@ -419,12 +389,10 @@ select.input {
   border-radius: var(--radius);
 }
 
-/* ---------- captcha ---------- */
 .captcha {
   margin: 0.2rem 0 1.1rem;
 }
 
-/* hCaptcha renders an inline widget — center it inside the form */
 .captcha__widget {
   min-height: 78px;
   display: flex;
@@ -437,7 +405,6 @@ select.input {
   text-align: center;
 }
 
-/* ---------- banners / loading ---------- */
 .banner {
   background: var(--warn-bg);
   border-bottom: 1px solid var(--warn-line);
@@ -512,14 +479,11 @@ select.input {
   margin-top: 0.4rem;
 }
 
-/* ===========================================================================
-   AUTH PAGES
-   =========================================================================== */
 .auth-wrap {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  /* the hushh background artwork — visible, not washed out */
+
   background-image:
     linear-gradient(180deg, rgba(247, 240, 222, 0.62), rgba(247, 240, 222, 0.8)),
     url('/background.jpg');
@@ -528,7 +492,6 @@ select.input {
   background-attachment: fixed;
 }
 
-/* centered body between the top bar and the bottom of the viewport */
 .auth-wrap__body {
   flex: 1;
   display: flex;
@@ -549,7 +512,6 @@ select.input {
   overflow: hidden;
 }
 
-/* yellow brand accent across the top of the card */
 .auth-card::before {
   content: '';
   position: absolute;
@@ -569,9 +531,6 @@ select.input {
   margin-bottom: 1.6rem;
 }
 
-/* (the auth logo now lives in the shared top bar) */
-
-/* every hushh logo is a link back to the home page */
 .auth-head__logo,
 .chat-side__logo,
 .site-footer__logo {
@@ -639,7 +598,6 @@ select.input {
   font-weight: 600;
 }
 
-/* ---------- recovery (forgot password) bits ---------- */
 .recovery-question {
   border: 1px solid var(--line);
   background: var(--cream);
@@ -681,15 +639,11 @@ select.input {
   margin: 0 0 1.4rem;
 }
 
-/* ===========================================================================
-   LANDING
-   =========================================================================== */
 .landing {
-  /* landing-scoped tokens — the app palette is untouched, these only ever
-     apply inside .landing */
+
   --pill-bg: #ffe9bd;
   --pill-ink: #8a5a00;
-  /* warm surfaces so nothing below the hero reads as stark white */
+
   --surface-warm: #fffdf7;
   --paper-warm: #fffaf0;
   --line-warm: rgba(120, 88, 30, 0.14);
@@ -699,48 +653,21 @@ select.input {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  /* the page warms up as it scrolls: white under the artwork at the top,
-     then the same warm cream family the sections use. The soft amber glows
-     echo the artwork's orange (#fdae56) so the lower half reads as the same
-     visual language instead of a blank sheet. */
-  background-color: #fbf0dc;
-  background-image:
-    radial-gradient(760px 520px at 100% 560px, rgba(253, 174, 86, 0.30), transparent 66%),
-    radial-gradient(640px 460px at 0% 1220px, rgba(253, 174, 86, 0.22), transparent 68%),
-    radial-gradient(820px 560px at 100% 1880px, rgba(253, 174, 86, 0.26), transparent 68%),
-    radial-gradient(680px 480px at 0% 2560px, rgba(253, 174, 86, 0.20), transparent 70%),
-    linear-gradient(180deg, #ffffff 0, #fff8ea 340px, #fdf1dd 980px, #fbe9cf 100%);
+
+  background-color: #fff;
+  background-image: url('/landing-background-cut.png');
+  background-size: 100% auto;
+  background-position: center top;
+  background-repeat: repeat-y;
+  background-attachment: scroll;
   font-family: var(--font-landing);
   overflow-x: clip;
 }
 
-/* nav + hero sit on the artwork. It is a decorative graphic, so it lives on
-   a masked pseudo-element that fades itself out — no hard edge and no colour
-   matching needed, the page wash simply shows through at the bottom. */
 .landing__top {
   position: relative;
   background: transparent;
 }
-
-.landing__top::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url('/background.png');
-  background-size: cover;
-  background-position: center top;
-  background-repeat: no-repeat;
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 74%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 74%, transparent 100%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* ===========================================================================
-   TOP BAR — shared header system across landing, auth, and chat.
-   Every header uses the same 64px rhythm, cream surface, hairline divider
-   and the 3px brand-yellow accent strip, so all pages feel like one product.
-   =========================================================================== */
 
 .topbar {
   position: relative;
@@ -753,7 +680,7 @@ select.input {
   padding: 0 2.2rem;
   background: rgba(255, 253, 245, 0.92);
   border-bottom: 1px solid var(--line);
-  box-shadow: inset 0 3px 0 0 var(--yellow); /* brand accent strip */
+  box-shadow: inset 0 3px 0 0 var(--yellow);
 }
 
 .topbar__brand {
@@ -763,9 +690,6 @@ select.input {
   line-height: 0;
 }
 
-/* the logo must fit INSIDE the header so it is never cut —
-   200px wide = 65px tall (wordmark asset is 3.08:1), centered in a
-   112px header with ~23px clearance — big and perfectly centered */
 .topbar__brand .logo-img {
   width: 200px;
 }
@@ -780,7 +704,6 @@ select.input {
   gap: 0.6rem;
 }
 
-/* ---- compact nav (sticky — stays visible while scrolling) ---- */
 .landing__nav {
   position: sticky;
   top: 0;
@@ -791,13 +714,12 @@ select.input {
   gap: 1rem;
   height: var(--topbar-h);
   padding: 0 2.2rem;
-  /* translucent so the artwork still reads through, blurred so scrolled
-     content never shows through when the bar is stuck */
+
   background: rgba(255, 255, 255, 0.62);
   -webkit-backdrop-filter: blur(9px);
   backdrop-filter: blur(9px);
   border-bottom: 1px solid rgba(22, 35, 46, 0.07);
-  box-shadow: inset 0 3px 0 0 var(--yellow); /* brand accent strip */
+  box-shadow: inset 0 3px 0 0 var(--yellow);
 }
 
 .landing__brand {
@@ -807,13 +729,12 @@ select.input {
   line-height: 0;
 }
 
-/* nav/footer logos sit on one line with the buttons */
 .landing__brand .logo-img {
   width: 186px;
 }
 
 .site-footer__logo .logo-img {
-  width: 160px; /* larger footer logo — matches the brand presence */
+  width: 160px;
 }
 
 .landing__nav-links {
@@ -822,7 +743,6 @@ select.input {
   gap: 0.65rem;
 }
 
-/* pill nav buttons */
 .landing__pill {
   display: inline-flex;
   align-items: center;
@@ -856,23 +776,35 @@ select.input {
   border-color: var(--amber);
 }
 
-/* ---- hero ---- */
 .landing__main {
   position: relative;
   flex: 1;
   width: 100%;
 }
 
-/* Decorative shapes echoing the artwork's orange, carried down the page.
-   They bleed off the edges (clipped by .landing) so the lower half reads as
-   the same visual language as the hero — not a blank sheet. Kept low-opacity
-   and always behind the content so body text stays readable. */
-.landing__deco {
+.landing__reversed {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.landing__reversed::before {
+  content: '';
   position: absolute;
   inset: 0;
-  overflow: hidden;
-  pointer-events: none;
   z-index: 0;
+  pointer-events: none;
+
+  background-color: #fff;
+  background-image: url('/landing-background-lower.png');
+  background-size: 100% auto;
+  background-position: center top;
+  background-repeat: repeat-y;
+  transform: scaleX(-1);
+}
+
+.landing__deco {
+  display: none;
 }
 
 .landing__deco span {
@@ -916,7 +848,6 @@ select.input {
   opacity: 0.14;
 }
 
-/* every real section sits above the decoration */
 .how,
 .features,
 .privacy {
@@ -926,7 +857,7 @@ select.input {
 
 .hero {
   position: relative;
-  z-index: 2; /* above the artwork fade */
+  z-index: 2;
   max-width: 1220px;
   margin: 0 auto;
   padding: 2.2rem 2.4rem 3rem;
@@ -943,7 +874,7 @@ select.input {
   margin: 0 0 1.4rem;
   padding: 0.5rem 1.1rem 0.5rem 0.85rem;
   border-radius: 999px;
-  /* near-white (not the pale yellow) so it reads over the orange artwork */
+
   background: rgba(255, 253, 249, 0.94);
   color: var(--pill-ink);
   font-family: var(--font-landing);
@@ -961,6 +892,7 @@ select.input {
   line-height: 0.98;
   letter-spacing: -0.012em;
   margin: 0 0 1.2rem;
+  margin-left: clamp(0.75rem, 2vw, 2rem);
 }
 
 .hero__line {
@@ -969,26 +901,51 @@ select.input {
 }
 
 .hero__line--accent {
+  position: relative;
   display: inline-block;
-  color: var(--yellow);
+  margin: 0.08em 0 0.1em 0.14em;
+  padding: 0.03em 0.18em 0.09em;
+  color: var(--ink);
+  background: #e0ad4f;
+  border-radius: 0.36em;
+  line-height: 0.93;
 }
 
 .hero__dot {
   color: var(--ink);
 }
 
-/* hand-drawn underline under the accent word */
-.hero__swoosh {
-  display: block;
-  width: min(78%, 430px);
-  height: 22px;
-  margin: 0.5rem 0 0.5rem 0.4rem;
+.hero__rays {
+  position: absolute;
+  left: calc(100% + 0.2em);
+  top: 50%;
+  width: 0.55em;
+  height: 0.72em;
+  transform: translateY(-48%);
 }
 
-.hero__swoosh svg {
-  display: block;
-  width: 100%;
-  height: 100%;
+.hero__rays i {
+  position: absolute;
+  left: 0;
+  width: 0.42em;
+  height: 0.075em;
+  border-radius: 999px;
+  background: var(--orange);
+  transform-origin: left center;
+}
+
+.hero__rays i:nth-child(1) {
+  top: 0.06em;
+  transform: rotate(-38deg);
+}
+
+.hero__rays i:nth-child(2) {
+  top: 0.32em;
+}
+
+.hero__rays i:nth-child(3) {
+  top: 0.58em;
+  transform: rotate(38deg);
 }
 
 .hero__sub {
@@ -1009,7 +966,6 @@ select.input {
   margin-bottom: 1.6rem;
 }
 
-/* rounded pill CTAs (hero only — the rest of the app keeps .btn--accent) */
 .btn--accent-pill,
 .btn--ghost-pill {
   border-radius: 999px;
@@ -1055,7 +1011,6 @@ select.input {
   flex-shrink: 0;
 }
 
-/* ---- hero visual: a faithful miniature of the real chat screen ---- */
 .hero__visual {
   position: relative;
   display: flex;
@@ -1156,7 +1111,6 @@ select.input {
   background: var(--cream);
 }
 
-/* bubble geometry mirrors .msg / .msg--own / .msg--other in the real chat */
 .pv-bubble {
   max-width: 72%;
   display: flex;
@@ -1194,7 +1148,6 @@ select.input {
   border-bottom-right-radius: 5px;
 }
 
-/* own-message timestamp colour, same as .msg--own .msg__time */
 .pv-bubble--out time {
   color: var(--yellow-soft);
   opacity: 0.85;
@@ -1224,7 +1177,6 @@ select.input {
   font-weight: 600;
 }
 
-/* the real composer's Send button: navy, cream text, 10px radius */
 .chat-preview__send {
   min-height: 44px;
   display: inline-flex;
@@ -1239,7 +1191,6 @@ select.input {
   flex: 0 0 auto;
 }
 
-/* ---- how it works ---- */
 .how {
   max-width: 1180px;
   margin: 0 auto;
@@ -1330,7 +1281,6 @@ select.input {
   color: var(--orange);
 }
 
-/* ---- features / "quiet by design" ---- */
 .features {
   max-width: 1180px;
   margin: 0 auto;
@@ -1380,7 +1330,6 @@ select.input {
   line-height: 1.5;
 }
 
-/* ---- privacy section ---- */
 .privacy {
   max-width: 1180px;
   margin: 0 auto;
@@ -1415,10 +1364,11 @@ select.input {
   line-height: 1.5;
 }
 
-/* ---- footer ---- */
 .site-footer {
   border-top: 1px solid var(--line-warm);
-  background: var(--paper-warm);
+  background: rgba(255, 250, 240, 0.88);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
 }
 
 .site-footer__main {
@@ -1426,9 +1376,15 @@ select.input {
   margin: 0 auto;
   padding: 2.6rem 2.2rem 2.2rem;
   display: grid;
-  grid-template-columns: 1.6fr 1fr 1fr 1.4fr;
+
+  grid-template-columns: 1.5fr 0.8fr 0.8fr 1.8fr;
   gap: 2.2rem;
   align-items: start;
+}
+
+.site-footer__brand,
+.site-footer__col {
+  padding-top: 0.65rem;
 }
 
 .site-footer__brand .logo-img {
@@ -1473,12 +1429,12 @@ select.input {
   text-decoration-color: var(--yellow);
 }
 
-/* ---- social card ---- */
 .site-footer__social {
+  min-height: 164px;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--paper);
-  padding: 1.25rem 1.3rem;
+  padding: 1.45rem 1.5rem;
   box-shadow: var(--shadow-card);
 }
 
@@ -1495,9 +1451,18 @@ select.input {
   font-size: 0.82rem;
 }
 
+.site-footer__social-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
 .site-footer__social-icons {
   display: flex;
   gap: 0.6rem;
+  flex-shrink: 0;
 }
 
 .social-btn {
@@ -1526,7 +1491,6 @@ select.input {
   box-shadow: var(--focus-ring);
 }
 
-/* ---- footer bottom bar ---- */
 .site-footer__bottom {
   max-width: 1180px;
   margin: 0 auto;
@@ -1542,14 +1506,31 @@ select.input {
 }
 
 .site-footer__copy {
-  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  color: var(--ink-soft);
+  font-weight: 600;
 }
 
-/* the "Meet Soumyadeep" button sits centred on the base line */
+.site-footer__copy-sep {
+  color: var(--yellow);
+  font-size: 1rem;
+  line-height: 1;
+}
+
 .site-footer__meet-btn {
-  min-height: 46px;
-  padding: 0.7rem 1.4rem;
-  font-size: 0.92rem;
+  min-height: 42px;
+  padding: 0.62rem 1.1rem;
+  font-size: 0.86rem;
+}
+
+.site-footer__meet-btn:hover {
+  background: var(--yellow);
+  border-color: var(--yellow);
+  color: var(--ink);
+  box-shadow: 0 8px 18px -10px rgba(246, 181, 0, 0.95);
 }
 
 .site-footer__bottom-links {
@@ -1578,15 +1559,10 @@ select.input {
   display: inline-block;
 }
 
-/* ===========================================================================
-   CHAT
-   =========================================================================== */
 .chat {
   display: grid;
   grid-template-columns: 350px minmax(0, 1fr);
-  /* mobile keyboard fix: 100vh ignores the on-screen keyboard on phones.
-     100dvh + --app-height (set from window.visualViewport) track the VISIBLE
-     area, so the composer stays above the keyboard. */
+
   height: 100vh;
   height: 100dvh;
   height: var(--app-height, 100dvh);
@@ -1611,12 +1587,11 @@ select.input {
   padding: 0 1rem;
   background: var(--paper);
   border-bottom: 1px solid var(--line);
-  box-shadow: inset 0 3px 0 0 var(--yellow); /* brand accent strip */
+  box-shadow: inset 0 3px 0 0 var(--yellow);
 }
 
-/* keep the sidebar logo balanced against the compact Log out button */
 .chat-side__logo .logo-img {
-  width: 170px; /* fits the sidebar — big, never cut */
+  width: 170px;
 }
 
 .chat-side__me {
@@ -1656,7 +1631,6 @@ select.input {
   overflow-y: auto;
 }
 
-/* ---- avatar (initials) ---- */
 .avatar {
   display: inline-flex;
   align-items: center;
@@ -1685,7 +1659,6 @@ select.input {
   color: var(--cream);
 }
 
-/* ---- conversation list ---- */
 .conversations {
   list-style: none;
   margin: 0;
@@ -1790,7 +1763,6 @@ select.input {
   font-size: 0.82rem;
 }
 
-/* ---- search results ---- */
 .search__hint {
   margin: 0.55rem 0 0;
   font-size: 0.8rem;
@@ -1847,7 +1819,6 @@ select.input {
   font-size: 0.76rem;
 }
 
-/* ---- message pane ---- */
 .chat-main {
   display: flex;
   flex-direction: column;
@@ -1865,7 +1836,7 @@ select.input {
   padding: 0 1.2rem;
   background: var(--paper);
   border-bottom: 1px solid var(--line);
-  box-shadow: inset 0 3px 0 0 var(--yellow); /* brand accent strip */
+  box-shadow: inset 0 3px 0 0 var(--yellow);
 }
 
 .chat-main__peer {
@@ -1885,7 +1856,6 @@ select.input {
   font-size: 0.8rem;
 }
 
-/* small "private" pill on the message header — echoes the hero preview */
 .chat-main__tag {
   flex-shrink: 0;
   font-size: 0.64rem;
@@ -1952,7 +1922,6 @@ select.input {
   margin: 2.2rem 0;
 }
 
-/* ---- message bubbles ---- */
 .msg {
   max-width: min(72%, 560px);
   padding: 0.6rem 0.9rem;
@@ -2011,7 +1980,6 @@ select.input {
   color: var(--yellow-soft);
 }
 
-/* ---- message context menu (right-click on desktop / double-tap on touch) ---- */
 .msg-menu {
   position: fixed;
   z-index: 70;
@@ -2049,7 +2017,6 @@ select.input {
   box-shadow: var(--focus-ring);
 }
 
-/* ---- composer ---- */
 .composer {
   display: flex;
   align-items: flex-end;
@@ -2116,7 +2083,6 @@ select.input {
   border-color: transparent;
 }
 
-/* ---- toast ---- */
 .toast {
   position: fixed;
   bottom: 1.5rem;
@@ -2134,9 +2100,6 @@ select.input {
   text-align: center;
 }
 
-/* ===========================================================================
-   DIALOG (one-time recovery)
-   =========================================================================== */
 .dialog-backdrop {
   position: fixed;
   inset: 0;
@@ -2269,10 +2232,6 @@ select.input {
   margin-top: 0.2rem;
 }
 
-
-/* ===========================================================================
-   RESPONSIVE
-   =========================================================================== */
 @media (min-width: 620px) {
   .field-row {
     grid-template-columns: 1fr 1fr;
@@ -2332,15 +2291,14 @@ select.input {
 
   .landing__nav,
   .topbar {
-    --topbar-h: 96px; /* tablet — still fits the logo without clipping */
+    --topbar-h: 96px;
     padding: 0 1.3rem;
   }
 
-  /* slightly smaller logo on tablets so it stays fully inside the bar */
   .topbar__brand .logo-img,
   .landing__brand .logo-img,
   .chat-side__logo .logo-img {
-    width: 150px; /* 48.7px tall — fits the 96px bar with plenty of clearance */
+    width: 150px;
   }
 
   .landing__main,
@@ -2362,6 +2320,28 @@ select.input {
 }
 
 @media (max-width: 700px) {
+
+  .landing {
+    background-color: #fffaf0;
+    background-image: none;
+  }
+
+  .landing__top {
+    background-color: #fff;
+    background-image: url('/landing-background-cut.png');
+    background-size: 100% auto;
+    background-position: center top;
+    background-repeat: no-repeat;
+  }
+
+  .landing__main {
+    background: #fffaf0;
+  }
+
+  .landing__reversed::before {
+    display: none;
+  }
+
   .how__list {
     grid-template-columns: 1fr;
   }
@@ -2419,14 +2399,8 @@ select.input {
     font-size: 0.84rem;
   }
 
-  /* the hero already offers "I already have one" -> /login */
   .landing__nav-links .landing__pill:first-child {
     display: none;
-  }
-
-  .hero__swoosh {
-    width: min(72%, 300px);
-    height: 18px;
   }
 
   .hero__actions .btn--lg {
@@ -2438,12 +2412,6 @@ select.input {
     max-width: 84%;
   }
 
-  /* `cover` on a tall phone band crops the artwork away almost entirely, so
-     scale it by width instead and keep the shapes visible at the top */
-  .landing__top::before {
-    background-size: 165% auto;
-    background-position: 62% top;
-  }
 }
 
 @media (max-width: 480px) {
@@ -2464,11 +2432,10 @@ select.input {
     font-size: 0.86rem;
   }
 
-  /* keep the logo fully inside the smaller mobile header */
   .topbar__brand .logo-img,
   .landing__brand .logo-img,
   .chat-side__logo .logo-img {
-    width: 130px; /* 42.2px tall — fits mobile headers without clipping */
+    width: 130px;
   }
 
   .msg {
@@ -2484,7 +2451,6 @@ select.input {
   }
 }
 
-/* ---------- reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -2494,11 +2460,6 @@ select.input {
   }
 }
 
-/* ===========================================================================
-   AVATARS (D), UNREAD BADGE (A), DELETE CHAT (B), SETTINGS MENU (C)
-   =========================================================================== */
-
-/* gallery avatar image */
 .avatar--img {
   object-fit: cover;
   border-radius: 12px;
@@ -2518,7 +2479,6 @@ select.input {
   border-radius: 12px;
 }
 
-/* conversation rows: avatar + name + meta(time+badge) */
 .conversation__meta {
   grid-column: 3;
   display: flex;
@@ -2547,7 +2507,6 @@ select.input {
   color: var(--ink);
 }
 
-/* chat header delete (when a conversation is open) */
 .chat-main__delete {
   flex-shrink: 0;
   color: var(--muted);
@@ -2558,7 +2517,6 @@ select.input {
   border-color: rgba(176, 58, 43, 0.4);
 }
 
-/* ---- settings menu (C) ---- */
 .settings {
   position: relative;
 }

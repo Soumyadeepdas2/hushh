@@ -7,15 +7,6 @@ import {
   isCurrentlyLocked,
 } from './helpers/rateLimitPolicy'
 
-// ---------------------------------------------------------------------------
-// Recovery rate-limiting policy tests (audit item 5).
-//
-// The policy: 5 failed attempts within 15 minutes → 15-minute lockout.
-// The atomic server-side enforcement lives in the SQL upsert
-// (migration 0004); this module is the exact pure mirror of those semantics,
-// so unit tests here pin the policy that the SQL must implement.
-// ---------------------------------------------------------------------------
-
 const T0 = Date.parse('2026-01-01T00:00:00.000Z')
 
 function iso(ms) {
@@ -44,7 +35,7 @@ describe('computeNextAttemptState', () => {
       expect(state.attemptCount).toBe(i)
       expect(state.lockedUntil).toBeNull()
       prev = { attemptCount: state.attemptCount, updatedAt: iso(now) }
-      now += 60_000 // 1 minute later — still inside the window
+      now += 60_000
     }
   })
 
@@ -62,7 +53,7 @@ describe('computeNextAttemptState', () => {
   })
 
   it('resets the counter when the previous attempt is outside the 15-min window', () => {
-    // attempt at T0, next attempt 16 minutes later → window expired → count resets to 1
+
     const state = computeNextAttemptState(
       { attemptCount: 4, updatedAt: iso(T0) },
       T0 + ATTEMPT_WINDOW_MS + 60_000,
@@ -81,7 +72,7 @@ describe('computeNextAttemptState', () => {
   })
 
   it('a fresh attempt after lock expiry starts a new window', () => {
-    // 5 attempts at T0..T0+4min → locked until T0+19min; attempt at T0+20min resets
+
     let prev = null
     let now = T0
     let state = null

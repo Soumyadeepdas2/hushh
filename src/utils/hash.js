@@ -1,16 +1,6 @@
-// ---------------------------------------------------------------------------
-// Hashing primitives shared by the frontend (and mirrored in the Edge
-// Function). Everything here uses the standard Web Crypto API so it runs
-// identically in browsers, Deno (Edge Function) and Node (tests).
-//
-// Rules:
-//   - Passwords: handled entirely by Supabase Auth. Never hashed here.
-//   - Security answers: PBKDF2-HMAC-SHA256 with a unique random salt per user.
-//   - Recovery IDs: SHA-256 of the normalized ID (high-entropy secret, see
-//     recoveryId.js for the rationale).
-// ---------------------------------------------------------------------------
 
-export const PBKDF2_ITERATIONS = 210_000 // OWASP recommendation for PBKDF2-SHA256
+
+export const PBKDF2_ITERATIONS = 210_000
 export const HASH_BYTES = 32
 
 function getCrypto() {
@@ -41,17 +31,11 @@ export function fromHex(hex) {
   return bytes
 }
 
-/**
- * SHA-256 hex digest.
- */
 export async function sha256Hex(input) {
   const digest = await getCrypto().subtle.digest('SHA-256', new TextEncoder().encode(input))
   return toHex(new Uint8Array(digest))
 }
 
-/**
- * PBKDF2-HMAC-SHA256(password, saltHex, iterations) -> hex digest (256 bits).
- */
 export async function pbkdf2Hex(password, saltHex, iterations = PBKDF2_ITERATIONS) {
   const salt = fromHex(saltHex)
   const keyMaterial = await getCrypto().subtle.importKey(
@@ -69,9 +53,6 @@ export async function pbkdf2Hex(password, saltHex, iterations = PBKDF2_ITERATION
   return toHex(new Uint8Array(bits))
 }
 
-/**
- * A fresh random salt as hex (16 random bytes by default).
- */
 export async function generateSaltHex(length = 16) {
   return toHex(randomBytes(length))
 }

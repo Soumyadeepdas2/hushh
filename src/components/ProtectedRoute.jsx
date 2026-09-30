@@ -1,9 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
-/**
- * Guards the /chat route. Unauthenticated users are redirected to /login.
- */
 export default function ProtectedRoute({ children }) {
   const { session, loading } = useAuth()
   const location = useLocation()

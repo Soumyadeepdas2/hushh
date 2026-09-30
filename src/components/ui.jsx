@@ -1,4 +1,4 @@
-// Small shared UI primitives used across pages.
+
 
 export function Button({ variant = 'default', type = 'button', className = '', disabled, children, onClick }) {
   const classes = ['btn']

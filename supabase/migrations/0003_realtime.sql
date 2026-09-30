@@ -1,14 +1,4 @@
--- ============================================================================
--- hushh — migration 0003: Supabase Realtime
--- ----------------------------------------------------------------------------
--- Enables Postgres Changes on the messages and conversations tables so the
--- chat UI receives live events.
---
--- Security: Supabase Realtime enforces RLS — a client only receives events
--- for rows it is authorized to SELECT. Because messages/conversations only
--- expose rows to participants, realtime can never leak messages from
--- conversations a user is not part of.
--- ============================================================================
+
 
 do $$
 begin

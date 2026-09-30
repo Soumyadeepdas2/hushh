@@ -1,33 +1,7 @@
 #!/usr/bin/env node
-// ============================================================================
-// hushh — LIVE security penetration matrix (optional)
-// ----------------------------------------------------------------------------
-// Proves the RLS / Realtime / rate-limiting guarantees against a REAL
-// Supabase project (PostgREST + Realtime), exactly as an attacker would:
-// direct REST calls, not the UI.
-//
-// Requirements:
-//   • A DEDICATED TEST Supabase project with migrations 0001–0005 applied,
-//     Auth "Confirm email" DISABLED, and the recover-password Edge Function
-//     deployed via the Dashboard with JWT verification disabled (the
-//     Dashboard "Enforce JWT verification" toggle OFF).
-//   • Environment variables (reuse the same .env as the app):
-//       VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
-//
-// Run:
-//   npm run test:security
-//
-// Notes:
-//   • Test users A/B/C are created with deterministic random Chat IDs; they
-//     remain in the TEST project afterwards (clients cannot delete Auth
-//     users without the service-role key, which this script never touches).
-//   • Never run against a production project — it creates real users.
-// ============================================================================
 
 import { readFileSync, existsSync } from 'node:fs'
 import { createClient } from '@supabase/supabase-js'
-
-// ---- config ----------------------------------------------------------------
 
 function loadEnv() {
   const env = {}
@@ -51,8 +25,6 @@ if (!url || !anon || url.includes('placeholder') || anon.includes('placeholder')
   )
   process.exit(0)
 }
-
-// ---- helpers ---------------------------------------------------------------
 
 let passed = 0
 let failed = 0
@@ -109,20 +81,17 @@ async function createTestUser(tag) {
   return { tag, chatId, email, password, user, userId: data.user.id, profileId: profile.id }
 }
 
-// ---- main ------------------------------------------------------------------
-
 console.log('\nhushh live security audit —', url, '\n')
 
 const results = []
 try {
-  // ============ setup ============
+
   const [A, B, C] = await Promise.all([
     createTestUser('a'),
     createTestUser('b'),
     createTestUser('c'),
   ])
 
-  // give A a secrets row so we can prove C cannot read it
   const { error: secretsError } = await A.user.from('user_secrets').insert({
     auth_user_id: A.userId,
     recovery_id_hash: 'a'.repeat(64),
@@ -132,14 +101,12 @@ try {
   })
   if (secretsError) throw new Error(`secrets insert for A: ${secretsError.message}`)
 
-  // A ↔ B conversation via the security-definer RPC
   const { data: conv, error: convError } = await A.user.rpc('get_or_create_conversation', {
     p_other_profile: B.profileId,
   })
   if (convError) throw new Error(`get_or_create_conversation: ${convError.message}`)
   const conversationId = conv.conversation_id
 
-  // A sends a message into A↔B
   const { error: sendError } = await A.user.from('messages').insert({
     conversation_id: conversationId,
     sender_id: A.profileId,
@@ -147,7 +114,6 @@ try {
   })
   if (sendError) throw new Error(`A send: ${sendError.message}`)
 
-  // ============ RLS: conversation access (item 6) ============
   console.log('\n— RLS: conversation access (A ↔ B, C is an outsider)')
   {
     const { data: aSee } = await A.user.from('conversations').select('id').eq('id', conversationId)
@@ -160,7 +126,6 @@ try {
     check('C cannot enumerate conversations it is not in', (cList || []).length === 0)
   }
 
-  // ============ RLS: messages (item 6) ============
   console.log('\n— RLS: messages')
   {
     const { data: aMsgs } = await A.user.from('messages').select('body').eq('conversation_id', conversationId)
@@ -202,7 +167,6 @@ try {
     })
   }
 
-  // ============ RLS: secrets + profiles (items 1, 3, 9) ============
   console.log('\n— RLS: secrets, profiles, search')
   {
     const { data: cSecrets } = await C.user.from('user_secrets').select('*')
@@ -224,12 +188,11 @@ try {
     check('get_profile_brief does not resolve profiles outside shared conversations', brief.length === 0)
   }
 
-  // ============ duplicate + case-insensitive Chat IDs (items 1, 7) ============
   console.log('\n— Chat ID uniqueness (case-insensitive, database-enforced)')
   {
     const dupChatId = randomChatId('dup')
     await expectReject('second user cannot claim the same Chat ID (case variant)', async () => {
-      const email = chatIdToEmail(dupChatId.toUpperCase()) // same normalized email
+      const email = chatIdToEmail(dupChatId.toUpperCase())
       const { data, error } = await anonClient.auth.signUp({ email, password: 'AuditPass2024!' })
       if (error || !data.session) throw new Error('blocked by Auth unique email')
       const dup = createClient(url, anon)
@@ -243,7 +206,6 @@ try {
     })
   }
 
-  // ============ rate limiting via the deployed Edge Function (item 5) ============
   console.log('\n— recovery rate limiting (deployed recover-password Edge Function)')
   {
     const fnUrl = `${url}/functions/v1/recover-password`
@@ -254,7 +216,7 @@ try {
         body: JSON.stringify(body),
       })
       let json = {}
-      try { json = await res.json() } catch { /* noop */ }
+      try { json = await res.json() } catch {   }
       return { status: res.status, ...json }
     }
 
@@ -273,7 +235,6 @@ try {
     check('locked state also blocks the lookup step', lookup.locked === true || /too many attempts/i.test(lookup.error || ''))
   }
 
-  // ============ Realtime authorization (item 7) ============
   console.log('\n— Realtime authorization')
   {
     const receivedByB = []
@@ -288,7 +249,7 @@ try {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, (p) => receivedByC.push(p))
       .subscribe()
 
-    await sleep(2500) // let subscriptions establish
+    await sleep(2500)
 
     await A.user.from('messages').insert({
       conversation_id: conversationId,
@@ -296,7 +257,7 @@ try {
       body: 'realtime ping',
     })
 
-    await sleep(4000) // give events time to arrive (and NOT arrive for C)
+    await sleep(4000)
 
     check('authorized participant (B) receives the new message via Realtime', receivedByB.length >= 1)
     check('unauthorized user (C) receives nothing via Realtime', receivedByC.length === 0)

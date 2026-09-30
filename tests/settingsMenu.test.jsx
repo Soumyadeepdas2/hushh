@@ -1,12 +1,9 @@
 // @vitest-environment jsdom
+
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import SettingsMenu from '../src/components/SettingsMenu'
-
-// ---------------------------------------------------------------------------
-// Settings menu (C) render test — avatar grid + logout, opens/closes.
-// ---------------------------------------------------------------------------
 
 let container
 let root
@@ -58,7 +55,7 @@ describe('SettingsMenu', () => {
     expect(menu.textContent).toContain('@soumyadeep')
     const buttons = menu.querySelectorAll('.settings__avatar')
     expect(buttons.length).toBe(12)
-    // the currently selected avatar is highlighted
+
     expect(menu.querySelector('.settings__avatar--active')).not.toBeNull()
   })
 
@@ -72,7 +69,7 @@ describe('SettingsMenu', () => {
     })
     const buttons = document.querySelectorAll('.settings__avatar')
     await act(async () => {
-      buttons[6].click() // avatar 7
+      buttons[6].click()
     })
     expect(onSelect).toHaveBeenCalledWith(7)
     expect(document.querySelector('.settings__menu')).toBeNull()

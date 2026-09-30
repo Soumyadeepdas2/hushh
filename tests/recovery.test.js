@@ -25,7 +25,7 @@ describe('recovery validation', () => {
 
   it('rejects a malformed Recovery ID', () => {
     const errors = validateRecoveryInput({
-      recoveryId: 'soumyadeep', // a Chat ID is NOT a Recovery ID
+      recoveryId: 'soumyadeep',
       securityAnswer: 'rex',
       newPassword: 'NewPass2024!',
     })

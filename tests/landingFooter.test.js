@@ -2,10 +2,6 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// ---------------------------------------------------------------------------
-// Landing header (sticky) + footer redesign tests (static pins).
-// ---------------------------------------------------------------------------
-
 const root = process.cwd()
 const read = (p) => readFileSync(resolve(root, p), 'utf8')
 const landing = read('src/pages/Landing.jsx')
@@ -42,7 +38,6 @@ describe('footer redesign with social card', () => {
   it('every external link opens safely (noopener noreferrer)', () => {
     const external = [...landing.matchAll(/href="https?:\/\/[^"]+"/g)]
     expect(external.length).toBeGreaterThan(0)
-    // each external anchor must carry rel="noopener noreferrer"
     const anchors = landing.split('<a')
     for (const a of anchors) {
       if (!/href="https?:\/\//.test(a)) continue
@@ -55,50 +50,63 @@ describe('footer redesign with social card', () => {
     expect(landing).not.toContain('href="#"')
   })
 
-  it('offers a "Meet Soumyadeep" button linking to the developer site', () => {
+  it('puts the "Meet Soumyadeep" button inside the larger social card', () => {
     expect(landing).toContain('site-footer__meet-btn')
     expect(landing).toContain('Meet Soumyadeep')
     expect(landing).toContain('href="https://www.soumyadeep.space/"')
-    // developer context survives as the button tooltip
     expect(landing).toContain('Soumyadeep Das')
+
+    const social = landing.slice(
+      landing.indexOf('className="site-footer__social"'),
+      landing.indexOf('className="site-footer__bottom"'),
+    )
+    expect(social).toContain('site-footer__social-actions')
+    expect(social).toContain('site-footer__meet-btn')
+    expect(social).toContain('btn btn--ghost site-footer__meet-btn')
+    expect(social).not.toContain('btn--accent-pill site-footer__meet-btn')
+    expect(css).toMatch(
+      /\.site-footer__meet-btn:hover\s*\{[\s\S]*?background: var\(--yellow\)[\s\S]*?border-color: var\(--yellow\)/,
+    )
   })
 
-  it('the footer is a SINGLE band — copyright + meet button + links on one line', () => {
-    // exactly one <footer> and exactly one copyright in the whole page
+  it('improves the copyright line and keeps the base band uncluttered', () => {
     expect(landing.match(/<footer/g)).toHaveLength(1)
     expect(landing.match(/&copy;/g)).toHaveLength(1)
-    // there is no separate "meet" band anymore
-    expect(landing).not.toContain('site-footer__meet"')
-    // all three groups live inside the same base band
+    expect(landing).toContain('Say hello quietly')
+    expect(landing).toContain('site-footer__copy-sep')
+
     const base = landing.slice(
       landing.indexOf('className="site-footer__bottom"'),
       landing.indexOf('</footer>'),
     )
     expect(base).toContain('site-footer__copy')
-    expect(base).toContain('site-footer__meet-btn')
     expect(base).toContain('site-footer__bottom-links')
+    expect(base).not.toContain('site-footer__meet-btn')
   })
 
-  it('the base band lays the three groups out in one flex row', () => {
+  it('the base band lays copyright and links out responsively', () => {
     const rule = css.slice(css.indexOf('.site-footer__bottom {'))
     expect(rule.slice(0, 400)).toContain('justify-content: space-between')
     expect(rule.slice(0, 400)).toContain('flex-wrap: wrap')
     expect(css).toContain('.site-footer__copy')
-    expect(css).toContain('.site-footer__meet-btn')
+    expect(css).toContain('.site-footer__copy-sep')
   })
 
-  it('has structured link columns (Product / About)', () => {
+  it('has structured, slightly lowered brand and link columns (Product / About)', () => {
     expect(landing).toContain('>Product</h4>')
     expect(landing).toContain('>About</h4>')
     expect(landing).toMatch(/site-footer__col/g)
+    expect(css).toMatch(
+      /\.site-footer__brand,\n\.site-footer__col\s*\{[\s\S]*?padding-top: 0\.65rem/,
+    )
   })
 
   it('About links point to sections that exist (working anchors)', () => {
-    // the sections carry the anchor ids
+
     expect(landing).toContain('className="how" id="how-it-works"')
     expect(landing).toContain('className="features" id="quiet-by-design"')
     expect(landing).toContain('id="privacy"')
-    // the About links target exactly those ids
+
     expect(landing).toContain('href="#how-it-works"')
     expect(landing).toContain('href="#quiet-by-design"')
     expect(landing).toContain('href="#privacy"')
@@ -119,12 +127,12 @@ describe('footer redesign with social card', () => {
   })
 
   it('footer layouts are responsive (collapse to 2 then 1 column)', () => {
-    expect(css).toMatch(/\.site-footer__main\s*\{[^}]*grid-template-columns:\s*1\.6fr 1fr 1fr 1\.4fr/m)
-    expect(css).toContain('grid-template-columns: 1fr 1fr;') // @max-860
-    expect(css).toContain('grid-template-columns: 1fr;') // @max-700
+    expect(css).toMatch(/\.site-footer__main\s*\{[^}]*grid-template-columns:\s*1\.5fr 0\.8fr 0\.8fr 1\.8fr/m)
+    expect(css).toContain('grid-template-columns: 1fr 1fr;')
+    expect(css).toContain('grid-template-columns: 1fr;')
   })
 
   it('no horizontal overflow from footer content', () => {
-    expect(css).toContain('overflow-x: clip') // global safety
+    expect(css).toContain('overflow-x: clip')
   })
 })

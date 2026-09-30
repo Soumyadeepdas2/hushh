@@ -1,9 +1,4 @@
--- ============================================================================
--- hushh — migration 0002: row level security, functions, triggers
--- ----------------------------------------------------------------------------
--- RLS is the security backbone of hushh. Every user-sensitive table is
--- protected; secrets are only reachable by the service role (Edge Function).
--- ============================================================================
+
 
 alter table public.profiles enable row level security;
 alter table public.user_secrets enable row level security;
@@ -12,15 +7,6 @@ alter table public.conversation_participants enable row level security;
 alter table public.messages enable row level security;
 alter table public.recovery_attempts enable row level security;
 
--- ============================================================================
--- profiles
---   SELECT: only your own row. Other users' rows are readable ONLY through
---           the security-definer functions below, which return just the
---           public fields (id, display_name, chat_id).
---   INSERT: only your own row (registration).
---   UPDATE: only your own row.
---   DELETE: only your own row (registration rollback).
--- ============================================================================
 create policy "profiles_select_own"
   on public.profiles for select
   using (auth.uid() = auth_user_id);
@@ -38,24 +24,10 @@ create policy "profiles_delete_own"
   on public.profiles for delete
   using (auth.uid() = auth_user_id);
 
--- ============================================================================
--- user_secrets
---   INSERT: only your own row (registration).
---   SELECT/UPDATE/DELETE: NO policies → only the service role (the
---   recover-password Edge Function) can ever read recovery data.
--- ============================================================================
 create policy "user_secrets_insert_own"
   on public.user_secrets for insert
   with check (auth.uid() = auth_user_id);
 
--- ============================================================================
--- conversations
---   SELECT: only participants.
---   INSERT/UPDATE/DELETE: NO client policies. Conversations and participants
---   are created exclusively by the security-definer function
---   get_or_create_conversation(). last_message_at / updated_at are
---   maintained by the security-definer trigger touch_conversation().
--- ============================================================================
 create policy "conversations_select_participant"
   on public.conversations for select
   using (
@@ -68,11 +40,6 @@ create policy "conversations_select_participant"
     )
   );
 
--- ============================================================================
--- conversation_participants
---   SELECT: only participants of the same conversation.
---   INSERT/UPDATE/DELETE: NO client policies (RPC-created only).
--- ============================================================================
 create policy "participants_select_participant"
   on public.conversation_participants for select
   using (
@@ -85,13 +52,6 @@ create policy "participants_select_participant"
     )
   );
 
--- ============================================================================
--- messages
---   SELECT: only participants of the conversation.
---   INSERT: only as yourself, into a conversation you participate in.
---   UPDATE: only your own, not-yet-deleted messages (soft delete).
---   Body edits are additionally blocked by trigger prevent_message_edit().
--- ============================================================================
 create policy "messages_select_participant"
   on public.messages for select
   using (
@@ -126,16 +86,6 @@ create policy "messages_update_own"
     sender_id = (select id from public.profiles where auth_user_id = auth.uid())
   );
 
--- recovery_attempts: intentionally NO policies. Client (and anon) roles can
--- neither read nor write it; only the service role can.
-
--- ============================================================================
--- TRIGGERS
--- ============================================================================
-
--- Soft-delete only: block body edits and moving messages between
--- conversations. Runs as the invoking user, but merely raising on invalid
--- changes is safe regardless of privileges.
 create or replace function public.prevent_message_edit()
 returns trigger
 language plpgsql
@@ -155,9 +105,6 @@ create trigger messages_prevent_edit
   before update on public.messages
   for each row execute function public.prevent_message_edit();
 
--- Keep conversations.updated_at / last_message_at fresh. Security definer so
--- the update succeeds even though clients have no UPDATE policy on
--- conversations.
 create or replace function public.touch_conversation()
 returns trigger
 language plpgsql
@@ -177,11 +124,6 @@ create trigger conversations_touch_after_message
   after insert on public.messages
   for each row execute function public.touch_conversation();
 
--- ============================================================================
--- SECURITY-DEFINER FUNCTIONS (the only way to read other users' profiles)
--- ============================================================================
-
--- Availability check (UX nicety; the DB constraints are authoritative).
 create or replace function public.chat_id_available(p_chat_id text)
 returns boolean
 language sql
@@ -195,8 +137,6 @@ as $$
   );
 $$;
 
--- Search by Chat ID prefix. Returns ONLY public fields (id, display_name,
--- chat_id). Never emails, never auth user ids, never recovery data.
 create or replace function public.search_profiles(p_query text)
 returns table (id uuid, display_name text, chat_id text)
 language plpgsql
@@ -211,7 +151,7 @@ begin
   if length(q) < 1 then
     return;
   end if;
-  -- escape LIKE wildcards so user input cannot act as a wildcard
+
   q := replace(q, '\', '\\');
   q := replace(q, '%', '\%');
   q := replace(q, '_', '\_');
@@ -224,7 +164,6 @@ begin
 end;
 $$;
 
--- The caller's own profile (public fields).
 create or replace function public.get_my_profile()
 returns table (id uuid, display_name text, chat_id text)
 language sql
@@ -236,9 +175,6 @@ as $$
   where p.auth_user_id = auth.uid();
 $$;
 
--- Brief profile info for conversation participants. Only returns rows for
--- profiles that share a conversation with the caller, so arbitrary profile
--- IDs cannot be probed.
 create or replace function public.get_profile_brief(p_ids uuid[])
 returns table (id uuid, display_name text, chat_id text)
 language sql
@@ -257,9 +193,6 @@ as $$
     );
 $$;
 
--- Atomically create (or fetch) a 1:1 conversation and both participant rows.
--- Security definer: the client can never insert participant rows directly,
--- so a user cannot add themselves to a conversation they were not invited to.
 create or replace function public.get_or_create_conversation(p_other_profile uuid)
 returns table (conversation_id uuid, participant_ids uuid[])
 language plpgsql
@@ -284,7 +217,6 @@ begin
     raise exception 'peer_not_found';
   end if;
 
-  -- deterministic, order-independent key (mirrors src/utils/conversation.js)
   v_key := least(v_me::text, p_other_profile::text) || ':' || greatest(v_me::text, p_other_profile::text);
 
   insert into public.conversations (dedupe_key)
@@ -301,9 +233,6 @@ begin
 end;
 $$;
 
--- ============================================================================
--- GRANTS (execution is limited to authenticated users)
--- ============================================================================
 grant execute on function public.chat_id_available(text) to authenticated;
 grant execute on function public.search_profiles(text) to authenticated;
 grant execute on function public.get_my_profile() to authenticated;

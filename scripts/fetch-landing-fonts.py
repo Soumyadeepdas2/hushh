@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 """
 Fetch the landing-page fonts and write them into public/fonts/ as woff2.
 
@@ -23,11 +23,9 @@ TARGETS = {
     "nunito.woff2": "Nunito:wght@400..800",
 }
 
-
 def get(url):
     req = urllib.request.Request(url, headers={"User-Agent": UA})
     return urllib.request.urlopen(req, timeout=60).read()
-
 
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
@@ -37,7 +35,7 @@ def main():
         for block in re.findall(r"@font-face\s*\{(.*?)\}", css, re.S):
             ur = re.search(r"unicode-range:\s*([^;]+);", block)
             if not ur or "U+0000-00FF" not in ur.group(1):
-                continue  # latin subset only
+                continue
             picked = re.search(r"url\((https://[^)]+)\)", block).group(1).replace("&amp;", "&")
             break
         if not picked:
@@ -49,7 +47,6 @@ def main():
         open(path, "wb").write(data)
         print(f"  {filename:22s} {len(data)/1024:6.1f} KB  <- {picked[:72]}")
     print("\nfonts written to", OUT_DIR)
-
 
 if __name__ == "__main__":
     main()

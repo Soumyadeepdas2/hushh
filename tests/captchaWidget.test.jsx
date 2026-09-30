@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
+
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 
-// Mock the captcha lib so the widget can be tested without a real script/network.
 vi.mock('../src/lib/captcha', () => ({
   isCaptchaEnabled: vi.fn(() => true),
   loadCaptchaScript: vi.fn(() => Promise.resolve(true)),
@@ -15,10 +15,6 @@ vi.mock('../src/lib/captcha', () => ({
 
 import CaptchaWidget from '../src/components/CaptchaWidget'
 import { isCaptchaEnabled, loadCaptchaScript, renderCaptcha } from '../src/lib/captcha'
-
-// ---------------------------------------------------------------------------
-// Shared hCaptcha widget render tests (used by BOTH Register and Login).
-// ---------------------------------------------------------------------------
 
 let container
 let root
@@ -68,7 +64,6 @@ describe('CaptchaWidget (shared by Register + Login)', () => {
     await act(async () => callback('P1_token'))
     expect(onToken).toHaveBeenCalledWith('P1_token')
 
-    // widget expired → onToken(null) so the parent can block submission again
     await act(async () => callback(null))
     expect(onToken).toHaveBeenCalledWith(null)
   })

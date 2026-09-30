@@ -11,12 +11,6 @@ function formatTime(iso) {
   return date.toLocaleDateString([], { day: 'numeric', month: 'short' })
 }
 
-// ---------------------------------------------------------------------------
-// Sidebar conversation list.
-//   • unread badge (A) — yellow pill with the unseen message count
-//   (deleting a chat is done from the open chat window header, not the list)
-// ---------------------------------------------------------------------------
-
 export default function ConversationList({ conversations, activeId, onOpen }) {
   if (conversations.length === 0) {
     return (

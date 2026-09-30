@@ -1,6 +1,4 @@
-// ---------------------------------------------------------------------------
-// Registration validation — pure, unit-testable business rules.
-// ---------------------------------------------------------------------------
+
 
 import { isValidChatId } from './chatId'
 import { validatePassword } from './password'

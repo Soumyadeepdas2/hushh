@@ -1,22 +1,5 @@
 import { useState } from 'react'
 
-// ---------------------------------------------------------------------------
-// One-time recovery dialog shown right after registration.
-//
-// The plaintext Recovery ID exists ONLY in this component's state (which is
-// itself short-lived) — it is never written to localStorage, sessionStorage,
-// cookies, the URL, analytics, the database or logs. Once the user
-// acknowledges, the parent drops the value from state entirely.
-//
-// Copy enforcement: the "I've saved it" button stays DISABLED until the user
-// clicks "Copy Recovery ID" at least once. This guarantees the user has made
-// the copy attempt (which also triggers the clipboard/focus cycle that
-// re-syncs the session and loads the profile in the background), and it
-// prevents the "close without saving" scenario. If the clipboard is blocked,
-// a hint appears and the button still unlocks after the copy attempt so the
-// user is never trapped.
-// ---------------------------------------------------------------------------
-
 export default function RecoveryDialog({ chatId, recoveryId, onDone }) {
   const [copied, setCopied] = useState(false)
   const [copyTouched, setCopyTouched] = useState(false)
@@ -30,7 +13,7 @@ export default function RecoveryDialog({ chatId, recoveryId, onDone }) {
       setCopyFailed(false)
       setTimeout(() => setCopied(false), 3000)
     } catch {
-      // clipboard unavailable — the user can still select the ID manually
+
       setCopyFailed(true)
       setCopied(false)
     }

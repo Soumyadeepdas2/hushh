@@ -2,16 +2,6 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// ---------------------------------------------------------------------------
-// Chat ID availability message regression test.
-//
-// Bug: when a Chat ID was taken, the form showed BOTH a green "This Chat ID
-// is already taken." (rendered via Field's `hint`) AND a red
-// "That Chat ID is already taken." (a separate warn paragraph) at the same
-// time. Fix: green hint is used ONLY for the available case; the taken case
-// is expressed via the red `error` slot.
-// ---------------------------------------------------------------------------
-
 const root = process.cwd()
 const register = readFileSync(resolve(root, 'src/pages/Register.jsx'), 'utf8')
 
@@ -20,7 +10,7 @@ describe('Chat ID availability message (single, correct color)', () => {
     expect(register).toContain(
       "hint={availability === true ? 'This Chat ID is available.' : undefined}",
     )
-    // the hint must never carry the "taken" text in green
+
     expect(register).not.toMatch(/hint=.*This Chat ID is already taken/m)
   })
 

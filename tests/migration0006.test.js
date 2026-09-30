@@ -2,11 +2,6 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-// ---------------------------------------------------------------------------
-// Migration 0006 — unread counts, delete chat (for me), avatars.
-// Static pins on the migration source so security properties can't regress.
-// ---------------------------------------------------------------------------
-
 const root = fileURLToPath(new URL('..', import.meta.url))
 const read = (p) => readFileSync(new URL(p, `file://${root}`), 'utf8')
 const m6 = read('supabase/migrations/0006_unread_delete_avatars.sql')
@@ -24,8 +19,7 @@ describe('migration 0006 — schema additions', () => {
 })
 
 describe('migration 0006 — security-definer functions are hardened', () => {
-  // NOTE: search by prefix — the CREATE signatures include parameter names
-  // (e.g. mark_conversation_read(p_conversation_id uuid)).
+
   const fns = [
     'public.get_unread_counts()',
     'public.mark_conversation_read(',
@@ -43,7 +37,7 @@ describe('migration 0006 — security-definer functions are hardened', () => {
   })
 
   it('each function is granted ONLY to authenticated', () => {
-    // grant lines use the signature with TYPES (no parameter names)
+
     const grantFns = [
       'public.get_unread_counts()',
       'public.mark_conversation_read(uuid)',
@@ -61,9 +55,9 @@ describe('migration 0006 — security-definer functions are hardened', () => {
     const block = norm(m6).slice(idx, idx + 2500)
     expect(block).toContain('public.is_conversation_participant(p_conversation_id)')
     expect(block).toContain('conversation_id = p_conversation_id and user_id = v_me')
-    // message rows are NOT deleted (shared with the other participant)
+
     expect(block).not.toContain('delete from public.messages')
-    // conversation is removed only when no participants remain
+
     expect(block).toContain('not exists (')
   })
 
@@ -84,7 +78,7 @@ describe('migration 0006 — security-definer functions are hardened', () => {
   it('public profile functions return ONLY public columns (incl. avatar_id)', () => {
     const sql = norm(m6)
     expect(sql).toContain('returns table (id uuid, display_name text, chat_id text, avatar_id smallint)')
-    // the returned column list never includes auth_user_id or recovery data
+
     expect(sql).not.toContain('select p.auth_user_id')
     expect(sql).not.toContain('recovery')
   })

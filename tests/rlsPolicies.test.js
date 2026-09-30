@@ -2,15 +2,6 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-// ---------------------------------------------------------------------------
-// Static RLS / schema policy tests (audit items 6, 8, 10, 11, 12).
-//
-// These read the actual migration files and pin the security invariants to
-// them, so an accidental policy deletion/weakening fails `npm test` even
-// without a live database. They complement (not replace) the live
-// penetration matrix in scripts/security-audit-live.mjs.
-// ---------------------------------------------------------------------------
-
 const root = fileURLToPath(new URL('..', import.meta.url))
 const read = (p) => readFileSync(new URL(p, `file://${root}`), 'utf8')
 const m1 = read('supabase/migrations/0001_schema.sql')
@@ -21,8 +12,6 @@ const m5 = read('supabase/migrations/0005_fix_recursive_rls.sql')
 
 const norm = (s) => s.toLowerCase().replace(/\s+/g, ' ').trim()
 
-// Slice from a function's definition to the start of the NEXT function, so a
-// block check can never bleed into a different function's body.
 function functionBlock(sql, needle) {
   const idx = sql.indexOf(needle)
   expect(idx, `function "${needle}" not found`).toBeGreaterThanOrEqual(0)
@@ -104,7 +93,7 @@ describe('user_secrets: never readable by any client role', () => {
   it('keeps exactly one client privilege on user_secrets: INSERT (registration)', () => {
     const sql = norm(m4)
     expect(sql).toContain('grant insert on table public.user_secrets to authenticated')
-    // no read or write privilege beyond that insert
+
     expect(sql).not.toContain('grant select on table public.user_secrets')
     expect(sql).not.toContain('grant update on table public.user_secrets')
     expect(sql).not.toContain('grant delete on table public.user_secrets')
@@ -221,8 +210,7 @@ describe('security-definer functions are least-privilege', () => {
   it('get_profile_brief only returns profiles sharing a conversation with the caller', () => {
     const block = functionBlock(norm(m2), 'create or replace function public.get_profile_brief(')
     expect(block).toContain('returns table (id uuid, display_name text, chat_id text)')
-    // the returned column list is the public triple only — auth_user_id is
-    // used internally to resolve the caller but never SELECTed as output
+
     expect(block).toContain('select p.id, p.display_name, p.chat_id')
     expect(block).not.toContain('select p.auth_user_id')
     expect(block).toContain('exists (')
@@ -278,12 +266,6 @@ describe('grants (audit item 9)', () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// Migration 0005 — recursive RLS fix (BUG 1: conversations HTTP 500)
-// ---------------------------------------------------------------------------
-
-// Extract a single `create policy "name" ... ;` block (to the next
-// create/drop policy or end of input).
 function policyBlock(sql, policyName) {
   const needle = `create policy "${policyName}"`
   const idx = sql.indexOf(needle)
@@ -321,7 +303,7 @@ describe('migration 0005 — recursive RLS fix (BUG 1: conversations HTTP 500)',
   it('recreates conversations_select_participant via the helper (no recursion)', () => {
     const block = policyBlock(norm(m5), 'conversations_select_participant')
     expect(block).toContain('using (public.is_conversation_participant(conversations.id))')
-    // no inline subquery against any RLS table inside the policy
+
     expect(block).not.toContain('from public.conversation_participants')
     expect(block).not.toContain('from public.profiles')
   })
@@ -364,10 +346,10 @@ describe('migration 0005 — recursive RLS fix (BUG 1: conversations HTTP 500)',
   })
 
   it('keeps RLS enabled on every user-sensitive table (nothing made public)', () => {
-    // 0002 still carries the enable statements and 0005 must not disable them
+
     const sql = norm(m5)
     expect(sql).not.toContain('disable row level security')
-    expect(sql).not.toContain('alter table public.') // 0005 alters no tables
+    expect(sql).not.toContain('alter table public.')
     expect(sql).not.toContain('grant all on table')
     expect(sql).not.toContain('to anon')
   })
@@ -382,10 +364,7 @@ describe('migration 0005 — recursive RLS fix (BUG 1: conversations HTTP 500)',
 })
 
 describe('regression: final (migration 0005) policies never re-introduce recursion', () => {
-  // 0005 drops and recreates the four participant-dependent policies. The
-  // operative definitions must never embed an inline subquery against an
-  // RLS-enabled table, otherwise PostgreSQL re-applies RLS inside the policy
-  // and recursion returns (HTTP 500).
+
   it('the recreated select policies contain no conversation_participants subquery', () => {
     const sql = norm(m5)
     for (const name of [

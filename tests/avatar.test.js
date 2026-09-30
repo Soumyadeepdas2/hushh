@@ -3,10 +3,6 @@ import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { AVATAR_COUNT, avatarPath, isValidAvatarId } from '../src/utils/avatar'
 
-// ---------------------------------------------------------------------------
-// Fixed avatar gallery (D) — pure logic + asset presence.
-// ---------------------------------------------------------------------------
-
 const root = process.cwd()
 
 describe('avatar id validation', () => {

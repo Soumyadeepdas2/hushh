@@ -1,9 +1,4 @@
-// ---------------------------------------------------------------------------
-// Password policy. This is a UX/validation policy only — the actual password
-// is handled by Supabase Auth. hushh never stores or hashes passwords itself.
-// The same policy is enforced server-side inside the recover-password Edge
-// Function before an admin password update.
-// ---------------------------------------------------------------------------
+
 
 export const PASSWORD_MIN_LENGTH = 8
 export const PASSWORD_MAX_LENGTH = 128

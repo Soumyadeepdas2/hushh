@@ -6,16 +6,6 @@ import {
 } from '../src/utils/chatId'
 import { validateRegistration } from '../src/utils/validation'
 
-// ---------------------------------------------------------------------------
-// Chat ID canonicalization security tests (audit item 1).
-//
-// Canonicalization must be IDENTICAL wherever a Chat ID is created, stored,
-// looked up, converted to the internal Auth email, used at login, and checked
-// for uniqueness. The rule is: trim + lowercase over an ASCII-only charset
-// (letters, digits, hyphen). Everything outside that charset is REJECTED, so
-// no two visually-equivalent inputs can ever produce separate identities.
-// ---------------------------------------------------------------------------
-
 describe('canonicalization: equivalent inputs collapse to ONE identity', () => {
   const variants = ['ABC', 'abc', 'AbC', '  ABC  ', '\tAbC\n', 'aBc', 'ABC'.toLowerCase()]
 
@@ -42,9 +32,9 @@ describe('canonicalization: equivalent inputs collapse to ONE identity', () => {
 
 describe('canonicalization: hostile input is REJECTED, not silently normalized', () => {
   const invalid = [
-    'café', // Unicode — outside ASCII charset
-    'İstanbul', // Unicode capital I with dot — JS/Postgres case-fold divergence
-    'straße', // ß has no stable 1:1 ASCII case-fold
+    'café',
+    'İstanbul',
+    'straße',
     '東京',
     'привет',
     'has space',
@@ -54,10 +44,10 @@ describe('canonicalization: hostile input is REJECTED, not silently normalized',
     'has_underscore',
     'has.dot',
     'has@symbol',
-    "soumyadeep'; DROP TABLE profiles;--", // SQL injection attempt
+    "soumyadeep'; DROP TABLE profiles;--",
     "OR '1'='1",
-    'x%y', // LIKE wildcard
-    'x_y', // LIKE wildcard
+    'x%y',
+    'x_y',
     'x\\y',
     'has/slash',
     'has+plus',

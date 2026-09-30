@@ -9,15 +9,6 @@ import {
 } from './helpers/rateLimitPolicy'
 import { isValidRecoveryId } from '../src/utils/recoveryId'
 
-// ---------------------------------------------------------------------------
-// Edge Function security tests (audit items 3, 4, 5, 13, 14).
-//
-// The recover-password Edge Function is the ONLY server-side component.
-// These tests pin its security-critical properties to the actual source so
-// they cannot regress silently. The live behavior matrix lives in
-// scripts/security-audit-live.mjs.
-// ---------------------------------------------------------------------------
-
 const root = fileURLToPath(new URL('..', import.meta.url))
 const edgePath = new URL(`file://${root}supabase/functions/recover-password/index.ts`)
 const edgeSrc = readFileSync(edgePath, 'utf8')
@@ -42,12 +33,12 @@ describe('recovery ID pattern in the Edge Function (140-bit format)', () => {
   it('is equivalent to the frontend recovery ID validation (no format drift)', () => {
     const edgePattern = extractEdgeRecoveryPattern()
     const samples = [
-      'RC-8FQ2-M7KD-XP9A-G3HW-N5LB-Q7CD', // valid (new 140-bit)
-      'rc-8fq2-m7kd-xp9a-g3hw-n5lb-q7cd', // valid, lowercase
-      'RC-8FQ2-M7KD-XP9A', // invalid (old 60-bit)
-      'RC-8FQ2-M7KD-XP9A-G3HW-N5LB-Q7C!', // invalid char
-      'RC-8FQ2-M7KD-XP9A-G3HW-N5LB-Q7CD-', // extra group
-      'soumyadeep', // a Chat ID is not a Recovery ID
+      'RC-8FQ2-M7KD-XP9A-G3HW-N5LB-Q7CD',
+      'rc-8fq2-m7kd-xp9a-g3hw-n5lb-q7cd',
+      'RC-8FQ2-M7KD-XP9A',
+      'RC-8FQ2-M7KD-XP9A-G3HW-N5LB-Q7C!',
+      'RC-8FQ2-M7KD-XP9A-G3HW-N5LB-Q7CD-',
+      'soumyadeep',
     ]
     for (const sample of samples) {
       expect(edgePattern.test(sample), `edge pattern on "${sample}"`).toBe(
@@ -96,11 +87,9 @@ describe('rate limiting is enforced server-side (audit item 5)', () => {
   })
 
   it('inlines the SAME policy constants as the test policy module (no drift)', () => {
-    // The function is a single self-contained file for Dashboard pasting, so
-    // its constants are inlined as literals. They must evaluate to the same
-    // values as tests/helpers/rateLimitPolicy.js — this pins that invariant.
+
     expect(edgeSrc).toContain(`const MAX_FAILED_ATTEMPTS = ${MAX_FAILED_ATTEMPTS}`)
-    // the source writes windows in minutes/hours: 15 * 60 * 1000 and 24 * 60 * 60 * 1000
+
     expect(edgeSrc).toContain(`const ATTEMPT_WINDOW_MS = ${ATTEMPT_WINDOW_MS / 60_000} * 60 * 1000`)
     expect(edgeSrc).toContain(`const LOCKOUT_MS = ${LOCKOUT_MS / 60_000} * 60 * 1000`)
     expect(edgeSrc).toContain(
@@ -149,10 +138,9 @@ describe('admin password reset behavior (audit item 13)', () => {
 
   it('never writes the plaintext Recovery ID or security answer to any table', () => {
     const src = norm(edgeSrc)
-    // the Edge Function never inserts rows; its only writes are the atomic
-    // rate-limit RPC and the attempt-cleanup delete
+
     expect(src).not.toContain('.insert(')
-    // user_secrets is only ever SELECTed, never written by the function
+
     const refs = [...src.matchAll(/from\('user_secrets'\)\s*\.\s*(\w+)/g)].map((m) => m[1])
     expect(refs.length).toBeGreaterThan(0)
     expect(refs.every((r) => r === 'select')).toBe(true)
@@ -166,8 +154,7 @@ describe('service-role key isolation (audit item 9)', () => {
   })
 
   it('is a single self-contained file (no local imports) — Dashboard paste-ready', () => {
-    // The only allowed import is the remote esm.sh client; any `./` or `../`
-    // import would break when pasted into the Dashboard single-file editor.
+
     const imports = [...edgeSrc.matchAll(/^import[^\n]*from\s+['"]([^'"]+)['"]/gm)].map(
       (m) => m[1],
     )

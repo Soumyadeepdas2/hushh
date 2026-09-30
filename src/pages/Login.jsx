@@ -6,15 +6,6 @@ import { Field, Button, ErrorBanner } from '../components/ui'
 import { signInWithChatId } from '../services/auth'
 import { isCaptchaEnabled, resetCaptcha } from '../lib/captcha'
 
-// ---------------------------------------------------------------------------
-// Login — Chat ID + password only. No email field anywhere.
-//
-// CAPTCHA: when a site key is configured (Supabase CAPTCHA protection ON),
-// the shared hCaptcha widget is shown and a completed token is REQUIRED —
-// Supabase rejects password sign-in with a 400 otherwise. Tokens are
-// single-use, so a failed submit resets the widget for a fresh attempt.
-// ---------------------------------------------------------------------------
-
 export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -31,8 +22,6 @@ export default function Login() {
     e.preventDefault()
     setError(null)
 
-    // CAPTCHA gate: when a site key is configured, a completed widget token
-    // is required before calling Supabase password auth.
     if (isCaptchaEnabled() && !captchaToken) {
       setCaptchaError(true)
       return
@@ -44,8 +33,7 @@ export default function Login() {
       navigate(from, { replace: true })
     } catch (err) {
       setError(err.message)
-      // CAPTCHA tokens are single-use: reset the widget and require a fresh
-      // one on the next attempt.
+
       setCaptchaToken(null)
       resetCaptcha()
     } finally {

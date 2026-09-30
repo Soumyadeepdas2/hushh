@@ -25,7 +25,7 @@ describe('conversation ID logic (1:1 deterministic key)', () => {
   })
 
   it('produces the same key the database trigger/function computes', () => {
-    // The database computes: least(a,b)::text || ':' || greatest(a,b)::text
+
     const dbStyle = `${[alice, bob].sort()[0]}:${[alice, bob].sort()[1]}`
     expect(getConversationKey(alice, bob)).toBe(dbStyle)
   })

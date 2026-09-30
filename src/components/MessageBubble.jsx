@@ -9,25 +9,14 @@ function formatTime(iso) {
 
 const LONG_PRESS_MS = 550
 
-// ---------------------------------------------------------------------------
-// A single message bubble. Deleted messages render as an italic placeholder —
-// the body is never shown again after deletion.
-//
-// Deleting YOUR OWN message (not-yet-deleted) is gesture-driven:
-//   • desktop — RIGHT-CLICK the message → small "Delete message" menu
-//   • touch   — LONG-PRESS (hold ~0.5s) the message → delete (parent opens
-//               the confirm dialog)
-// ---------------------------------------------------------------------------
-
 export default function MessageBubble({ message, own, onDelete }) {
-  const [menu, setMenu] = useState(null) // { x, y } cursor position
+  const [menu, setMenu] = useState(null)
   const touchTimerRef = useRef(null)
 
   const canDelete = Boolean(own && !message.deleted_at && onDelete)
 
   const closeMenu = () => setMenu(null)
 
-  // close the context menu on outside click / Escape / scroll
   useEffect(() => {
     if (!menu) return undefined
     const onDown = (e) => {
@@ -47,7 +36,6 @@ export default function MessageBubble({ message, own, onDelete }) {
     }
   }, [menu])
 
-  // clear any pending long-press timer on unmount
   useEffect(
     () => () => {
       if (touchTimerRef.current) clearTimeout(touchTimerRef.current)
@@ -60,11 +48,9 @@ export default function MessageBubble({ message, own, onDelete }) {
     if (canDelete) onDelete(message)
   }
 
-  // ---- desktop: right-click menu -------------------------------------------
   const handleContextMenu = (e) => {
     if (!canDelete) return
-    // on coarse pointers (phone/tablet) we use long-press instead, and we
-    // don't hijack the native long-press context menu
+
     if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return
     e.preventDefault()
     const pad = 8
@@ -75,7 +61,6 @@ export default function MessageBubble({ message, own, onDelete }) {
     setMenu({ x: Math.max(pad, x), y: Math.max(pad, y) })
   }
 
-  // ---- touch: long-press to delete (phone/tablet only) ----------------------
   const clearTouchTimer = () => {
     if (touchTimerRef.current) {
       clearTimeout(touchTimerRef.current)
@@ -85,7 +70,7 @@ export default function MessageBubble({ message, own, onDelete }) {
 
   const handleTouchStart = (e) => {
     if (!canDelete) return
-    // don't start a long-press during a two-finger gesture (scroll/pinch)
+
     if (e.touches && e.touches.length > 1) return
     clearTouchTimer()
     touchTimerRef.current = setTimeout(() => {
@@ -95,12 +80,12 @@ export default function MessageBubble({ message, own, onDelete }) {
   }
 
   const handleTouchMove = () => {
-    // user is scrolling — cancel the long-press
+
     clearTouchTimer()
   }
 
   const handleTouchEnd = () => {
-    // released before the hold completed — a normal tap, do nothing
+
     clearTouchTimer()
   }
 

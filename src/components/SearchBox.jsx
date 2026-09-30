@@ -2,12 +2,6 @@ import { useEffect, useState } from 'react'
 import { searchProfiles } from '../services/profiles'
 import Avatar from './Avatar'
 
-// ---------------------------------------------------------------------------
-// Search users by Chat ID. Results only ever contain the public profile
-// fields: id (opaque), display_name, chat_id, avatar_id. No emails, no auth
-// IDs, no recovery information.
-// ---------------------------------------------------------------------------
-
 export default function SearchBox({ myProfileId, onSelect }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
@@ -38,7 +32,7 @@ export default function SearchBox({ myProfileId, onSelect }) {
   }, [query, myProfileId])
 
   const handleSelect = (user) => {
-    // Clear the search so the box + results vanish after choosing a user.
+
     setQuery('')
     setResults([])
     onSelect(user)

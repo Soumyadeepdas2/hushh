@@ -4,9 +4,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { buildCaptchaAuthOptions, captchaEnabledForKey } from '../src/lib/captcha'
 import { toFriendlyAuthError } from '../src/services/auth'
 
-// The auth service imports the Supabase client (which initializes Realtime
-// WebSockets — not available in the Node 20 test env). Mock it so we can
-// exercise the pure error-mapping function without a network/WebSocket.
 vi.mock('../src/lib/supabase', () => ({
   supabase: {
     auth: {
@@ -20,14 +17,6 @@ vi.mock('../src/lib/supabase', () => ({
     },
   },
 }))
-
-// ---------------------------------------------------------------------------
-// CAPTCHA (bot protection at account creation AND sign-in) tests.
-//
-// The widget itself is DOM + network dependent, so we test the pure decision
-// logic and pin the wiring to the actual source files. The Supabase Auth
-// secret key is NEVER in the frontend — only the public site key via env.
-// ---------------------------------------------------------------------------
 
 const root = process.cwd()
 const read = (p) => readFileSync(resolve(root, p), 'utf8')
@@ -95,7 +84,7 @@ describe('CAPTCHA wiring (static pins)', () => {
     expect(register).toContain('captchaToken,')
     expect(register).toContain('resetCaptcha()')
     expect(register).toContain('<CaptchaWidget')
-    // the message now lives in the shared component
+
     expect(read('src/components/CaptchaWidget.jsx')).toContain(
       'Please complete the CAPTCHA to continue.',
     )
@@ -109,15 +98,13 @@ describe('CAPTCHA wiring (static pins)', () => {
     expect(login).toContain('setCaptchaToken(null)')
     expect(login).toContain('resetCaptcha()')
     expect(login).toContain('<CaptchaWidget')
-    // the Login page still shows the standard form fields and button
+
     expect(login).toContain('Sign in quietly')
     expect(login).toContain('btn--block')
   })
 
   it('no CAPTCHA secret VALUES are ever embedded in the frontend', () => {
-    // The hCaptcha SECRET is a UUID; a leaked one would appear as a UUID or
-    // long hex/JWT literal. Comments may mention "secret key" — what must not
-    // exist is an actual secret value hardcoded in source.
+
     const suspicious =
       /(0x[0-9a-fA-F]{20,}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|eyJ[a-zA-Z0-9_-]{20,})/i
     const files = [
@@ -135,7 +122,7 @@ describe('CAPTCHA wiring (static pins)', () => {
   it('captcha site key comes only from the env var', () => {
     const captcha = read('src/lib/captcha.js')
     expect(captcha).toContain('VITE_CAPTCHA_SITE_KEY')
-    // no hardcoded sitekey literal (site keys are UUIDs)
+
     expect(captcha).not.toMatch(/sitekey\s*[:=]\s*['"][0-9a-f-]{20,}/i)
   })
 })

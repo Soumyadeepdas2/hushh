@@ -17,7 +17,7 @@ describe('Recovery ID generation', () => {
     for (let i = 0; i < 200; i += 1) {
       const id = generateRecoveryId()
       expect(id).toMatch(FORMAT)
-      expect(id.length).toBe('RC-'.length + 7 * 4 + 6) // 3 + 28 + 6 separators = 37
+      expect(id.length).toBe('RC-'.length + 7 * 4 + 6)
     }
   })
 
@@ -28,7 +28,7 @@ describe('Recovery ID generation', () => {
   })
 
   it('carries at least 128 bits of entropy', () => {
-    // 28 random chars from a 32-char alphabet => 28 * log2(32) = 140 bits
+
     const bits = 7 * 4 * Math.log2(ALPHABET.length)
     expect(bits).toBeGreaterThanOrEqual(128)
     expect(bits).toBeCloseTo(140, 6)
@@ -55,7 +55,7 @@ describe('Recovery ID format validation', () => {
   it('rejects malformed values', () => {
     expect(isValidRecoveryId('')).toBe(false)
     expect(isValidRecoveryId('CH-8FQ2-M7KD-XP9A-G3HW-N5LB-Q7CD')).toBe(false)
-    expect(isValidRecoveryId('RC-8FQ2-M7KD-XP9A')).toBe(false) // old 60-bit format
+    expect(isValidRecoveryId('RC-8FQ2-M7KD-XP9A')).toBe(false)
     expect(isValidRecoveryId('RC-8FQ2-M7KD')).toBe(false)
     expect(isValidRecoveryId(`${VALID_RECOVERY_ID}-EXTRA`)).toBe(false)
     expect(isValidRecoveryId('RC-8FQ2-M7KD-XP9A-G3HW-N5LB-Q7C!')).toBe(false)

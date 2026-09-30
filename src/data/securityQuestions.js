@@ -1,5 +1,4 @@
-// The fixed list of security questions offered during registration.
-// Only the question ID is stored in the database — never the plaintext answer.
+
 
 export const SECURITY_QUESTIONS = [
   { id: 1, text: 'What was the name of your first pet?' },

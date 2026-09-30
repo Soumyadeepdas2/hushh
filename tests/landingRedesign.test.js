@@ -2,14 +2,6 @@ import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// ---------------------------------------------------------------------------
-// Landing nav + hero redesign (playful / hand-drawn) — static pins.
-//
-// The redesign is deliberately landing-scoped: it must never leak into the
-// auth pages or chat (the previous landing/chat mismatch is exactly what these
-// pins prevent from happening again).
-// ---------------------------------------------------------------------------
-
 const root = process.cwd()
 const read = (p) => readFileSync(resolve(root, p), 'utf8')
 const has = (p) => existsSync(resolve(root, p))
@@ -45,81 +37,50 @@ describe('landing fonts are self-hosted (no third-party font requests)', () => {
   })
 })
 
-describe('landing hero uses the artwork background', () => {
-  it('the nav + hero band carries the background artwork', () => {
-    expect(css).toMatch(/\.landing__top\s*\{[\s\S]*?url\('\/background\.png'\)/)
+describe('the landing page alternates the supplied artwork direction', () => {
+  it('keeps one continuous normal pattern through the hero and How it works', () => {
+    const page = css.slice(css.indexOf('.landing {'), css.indexOf('.landing__top {'))
+    expect(page).toContain("background-image: url('/landing-background-cut.png')")
+    expect(page).toContain('background-size: 100% auto')
+    expect(page).toContain('background-position: center top')
+    expect(page).toContain('background-repeat: repeat-y')
+    expect(page).toContain('background-attachment: scroll')
   })
 
-  it('the artwork dissolves into the page wash (masked, no hard edge)', () => {
-    // the artwork lives on a pseudo-element that masks itself out
-    expect(css).toMatch(/\.landing__top::before\s*\{[\s\S]*?url\('\/background\.png'\)/)
-    expect(css).toMatch(/\.landing__top::before\s*\{[\s\S]*?mask-image: linear-gradient/)
-    // and there is no hard white fade band left over
+  it('mirrors only Quiet by design + Privacy without the crossed right shape', () => {
+    expect(landing).toContain('<div className="landing__reversed">')
+    expect(has('public/landing-background-lower.png')).toBe(true)
+    const reversed = css.slice(
+      css.indexOf('.landing__reversed {'),
+      css.indexOf('.landing__deco {'),
+    )
+    expect(reversed).toContain('.landing__reversed::before')
+    expect(reversed).toContain("background-image: url('/landing-background-lower.png')")
+    expect(reversed).toContain('background-repeat: repeat-y')
+    expect(reversed).toContain('transform: scaleX(-1)')
+    expect(reversed).not.toContain('mask-image:')
+    expect(reversed).toContain('pointer-events: none')
+  })
+
+  it('does not paint an extra faded copy over the hero', () => {
+    expect(css).not.toContain('.landing__top::before')
     expect(css).not.toContain('.landing__top::after')
   })
 
-  it('the artwork asset exists and the auth pages keep their own artwork', () => {
-    expect(has('public/background.png')).toBe(true)
-    // auth/chat still use background.jpg — the landing art must not replace it
+  it('ships the supplied asset while auth pages keep their own artwork', () => {
+    expect(has('public/landing-background-cut.png')).toBe(true)
     expect(css).toContain("url('/background.jpg')")
   })
 
-  it('removes the old CSS blob + doodle decorations from the hero', () => {
-    expect(css).not.toContain('.blob--tl')
-    expect(css).not.toContain('.hero-deco')
-    expect(css).not.toContain('.stamp')
-    expect(css).not.toContain('.hero__sun')
-    expect(landing).not.toContain('hero-deco')
-    expect(landing).not.toContain('stamp')
-  })
-})
-
-describe('the whole page carries a background (no stark white sections)', () => {
-  it('.landing paints a genuinely warm wash, not near-white', () => {
-    const rule = css.slice(css.indexOf('.landing {'), css.indexOf('.landing__top {'))
-    expect(rule).toContain('background-color: #fbf0dc')
-    expect(rule).toMatch(/linear-gradient\(180deg, #ffffff 0, #fff8ea 340px/)
-    expect(rule).not.toMatch(/background:\s*#fff;/)
-    // the bottom of the page must be clearly cream, not a 2% tint of white
-    expect(rule).toMatch(/#fbe9cf 100%/)
-  })
-
-  it('echoes the artwork orange as glows down the page', () => {
-    const rule = css.slice(css.indexOf('.landing {'), css.indexOf('.landing__top {'))
-    const glows = rule.match(/rgba\(253, 174, 86/g) || []
-    expect(glows.length).toBeGreaterThanOrEqual(4)
-  })
-
-  it('carries visible decorative shapes through the sections', () => {
-    expect(landing).toContain('landing__deco')
-    expect(landing.match(/<span \/>/g).length).toBeGreaterThanOrEqual(4)
-    expect(css).toMatch(/\.landing__deco \{[\s\S]*?position: absolute/)
-    // shapes are orange, faint, and non-interactive
-    const deco = css.slice(css.indexOf('.landing__deco {'))
-    expect(deco.slice(0, 1200)).toContain('background: #fdae56')
-    expect(deco.slice(0, 1200)).toContain('pointer-events: none')
-    // and the real content is lifted above them
-    expect(css).toMatch(/\.how,\n\.features,\n\.privacy \{[\s\S]*?z-index: 1/)
-  })
-
-  it('section + footer surfaces are warm, not near-white', () => {
-    expect(css).toContain('--surface-warm: #fffdf7;')
-    expect(css).toContain('--paper-warm: #fffaf0;')
-    expect(css).toContain('--line-warm:')
-
-    // all five landing separators use the warm hairline
-    // (.how, .features, .privacy, .site-footer, .site-footer__bottom)
-    const warm = css.match(/var\(--line-warm\)/g) || []
-    expect(warm.length).toBeGreaterThanOrEqual(5)
-
-    expect(css).toMatch(/\.how \{[\s\S]*?border-top: 1px solid var\(--line-warm\)/)
-    expect(css).toMatch(/\.features \{[\s\S]*?border-top: 1px solid var\(--line-warm\)/)
-    expect(css).toMatch(/\.privacy \{[\s\S]*?border-top: 1px solid var\(--line-warm\)/)
-    expect(css).toMatch(/\.site-footer \{[\s\S]*?background: var\(--paper-warm\)/)
+  it('disables duplicate orange decorations and keeps footer content readable', () => {
+    expect(css).toMatch(/\.landing__deco\s*\{\s*display: none;/)
+    expect(css).toMatch(
+      /\.site-footer\s*\{[\s\S]*?background: rgba\(255, 250, 240, 0\.88\)/,
+    )
   })
 
   it('app chrome keeps the cool hairlines (redesign stays landing-scoped)', () => {
-    // the real chat composer must NOT be warmed
+
     expect(css).toMatch(/\.composer \{[\s\S]*?border-top: 1px solid var\(--line\)/)
     expect(css).toMatch(/\.settings__logout \{[\s\S]*?border-top: 1px solid var\(--line\)/)
   })
@@ -133,23 +94,28 @@ describe('headline: hand-drawn display face with a swoosh', () => {
   })
 
   it('the headline stays dominant on phones (no tiny override)', () => {
-    // the old laptop-era 2.3rem phone override must be gone
+
     expect(css).not.toContain('font-size: 2.3rem')
     expect(css).toMatch(/\.hero__title\s*\{\s*font-size: clamp\(3rem, 13vw, 3\.6rem\)/)
   })
 
-  it('the accent word is set in yellow with a hand-drawn underline', () => {
+  it('highlights quietly with a rounded gold block and orange rays', () => {
     expect(landing).toContain('hero__line--accent')
-    expect(landing).toContain('hero__swoosh')
-    expect(css).toMatch(/\.hero__line--accent\s*\{[\s\S]*?color: var\(--yellow\)/)
-    expect(css).toContain('.hero__swoosh')
+    expect(landing).toContain('hero__rays')
+    expect(landing.match(/<i \/>/g).length).toBeGreaterThanOrEqual(3)
+    expect(landing).not.toContain('hero__swoosh')
+    expect(css).toMatch(
+      /\.hero__line--accent\s*\{[\s\S]*?color: var\(--ink\)[\s\S]*?background: #e0ad4f[\s\S]*?border-radius: 0\.36em/,
+    )
+    expect(css).toMatch(/\.hero__rays i\s*\{[\s\S]*?background: var\(--orange\)/)
+    expect(css).toMatch(/\.hero__title\s*\{[\s\S]*?margin-left: clamp\(0\.75rem, 2vw, 2rem\)/)
   })
 })
 
 describe('hero chat card mirrors the REAL chat screen', () => {
   it('has no read receipts (hushh has none)', () => {
     expect(landing).not.toMatch(/double.?tick/i)
-    // no second tick glyph in the preview
+
     expect(landing).not.toContain('✓✓')
     expect(landing).not.toContain('✔✔')
   })
@@ -177,7 +143,7 @@ describe('the redesign is landing-scoped', () => {
   it('pill CTAs are landing-only classes, not global .btn overrides', () => {
     expect(css).toContain('.btn--accent-pill')
     expect(css).toContain('.btn--ghost-pill')
-    // the shared .btn--accent rule is untouched (auth + chat still use it)
+
     expect(css).toMatch(/\.btn--accent\s*\{\s*background: var\(--yellow\)/)
   })
 
@@ -203,6 +169,16 @@ describe('the redesign is landing-scoped', () => {
 })
 
 describe('nav remains usable on phones', () => {
+  it('uses one hero artwork and a clean solid background below it', () => {
+    const mobile = css.slice(css.indexOf('@media (max-width: 700px)'))
+    expect(mobile).toMatch(/\.landing\s*\{[\s\S]*?background-image: none/)
+    expect(mobile).toMatch(
+      /\.landing__top\s*\{[\s\S]*?landing-background-cut\.png[\s\S]*?background-repeat: no-repeat/,
+    )
+    expect(mobile).toMatch(/\.landing__main\s*\{[\s\S]*?background: #fffaf0/)
+    expect(mobile).toMatch(/\.landing__reversed::before\s*\{\s*display: none/)
+  })
+
   it('nav pills never wrap onto two lines', () => {
     expect(css).toMatch(/\.landing__pill\s*\{[\s\S]*?white-space: nowrap/)
   })
@@ -214,8 +190,13 @@ describe('nav remains usable on phones', () => {
     expect(landing).toMatch(/to="\/login"[\s\S]{0,80}I already have one/)
   })
 
-  it('the sticky nav is still pinned and anchors still clear it', () => {
+  it('the sticky nav is pinned for the full landing page', () => {
     expect(css).toMatch(/\.landing__nav\s*\{[\s\S]*?position: sticky;[\s\S]*?top: 0;/)
     expect(css).toContain('scroll-margin-top: 120px')
+
+    const navIndex = landing.indexOf('<header className="landing__nav">')
+    const heroContainerIndex = landing.indexOf('<div className="landing__top">')
+    expect(navIndex).toBeGreaterThan(-1)
+    expect(navIndex).toBeLessThan(heroContainerIndex)
   })
 })

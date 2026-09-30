@@ -11,7 +11,6 @@ import Chat from './pages/Chat'
 import { isSupabaseConfigured } from './lib/supabase'
 import { preloadCaptcha } from './lib/captcha'
 
-// Redirect authenticated users away from the auth pages.
 function GuestOnly({ children }) {
   const { session, loading } = useAuth()
   if (loading) return <div className="page-loading">Loading…</div>
@@ -20,16 +19,14 @@ function GuestOnly({ children }) {
 }
 
 export default function App() {
-  // start loading hCaptcha as early as possible so Sign in / Create account
-  // don't wait on a slow first load (especially on phones)
+
   useEffect(() => {
     preloadCaptcha()
   }, [])
 
   return (
     <AuthProvider>
-      {/* RecoveryProvider renders the one-time Recovery ID dialog ABOVE the
-          router so the post-signup /chat redirect cannot destroy it. */}
+
       <RecoveryProvider>
         <BrowserRouter>
           {!isSupabaseConfigured && (

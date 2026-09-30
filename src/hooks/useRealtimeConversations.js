@@ -1,10 +1,4 @@
-// ---------------------------------------------------------------------------
-// Realtime hook for the conversation list.
-//
-// Subscribes to changes on the conversations table with no filter; RLS on
-// conversations ensures only events for conversations the caller participates
-// in are delivered.
-// ---------------------------------------------------------------------------
+
 
 import { useEffect } from 'react'
 import { supabase } from '../lib/supabase'

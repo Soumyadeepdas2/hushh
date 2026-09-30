@@ -2,15 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { chatIdToEmail } from '../src/utils/emailMapping'
 import { normalizeChatId } from '../src/utils/chatId'
 
-// ---------------------------------------------------------------------------
-// Deterministic internal Auth email tests (audit item 2).
-//
-// The internal email is derived ONLY from the normalized Chat ID:
-//   "<normalized>@<project-hostname>"
-// It must be deterministic, injective (collision-safe), syntactically valid,
-// short enough for Auth, and never derived from a real user email.
-// ---------------------------------------------------------------------------
-
 const VALID_EMAIL = /^[a-z0-9-]+@[a-z0-9.-]+$/
 
 describe('internal email mapping: determinism', () => {
@@ -44,14 +35,12 @@ describe('internal email mapping: collision safety (injectivity)', () => {
   it('is injective over a large sample (deterministic + CSPRNG)', () => {
     const seen = new Set()
 
-    // deterministic distinct valid Chat IDs
     for (let i = 0; i < 3000; i += 1) {
       const email = chatIdToEmail(`uid-${i}`)
       expect(seen.has(email), `duplicate email for uid-${i}`).toBe(false)
       seen.add(email)
     }
 
-    // random valid Chat IDs from a CSPRNG (collision chance ~10^-13)
     const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789'
     for (let i = 0; i < 3000; i += 1) {
       const bytes = globalThis.crypto.getRandomValues(new Uint8Array(14))
@@ -79,7 +68,7 @@ describe('internal email mapping: validity for Auth', () => {
   })
 
   it('never exceeds the practical email length limit (254)', () => {
-    // worst case: 20-char Chat ID + a long but plausible project hostname
+
     const email = chatIdToEmail('a'.repeat(20))
     expect(email.length).toBeLessThanOrEqual(254)
   })
@@ -89,7 +78,7 @@ describe('internal email mapping: validity for Auth', () => {
     expect(email).not.toContain('gmail.com')
     expect(email).not.toContain('yahoo')
     expect(email).not.toContain('outlook')
-    // exactly one @ separator, local part = the Chat ID, domain = the project
+
     const [local, domain] = email.split('@')
     expect(domain).toBeTruthy()
     expect(local).toBe('soumyadeep')
